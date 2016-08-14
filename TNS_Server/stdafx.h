@@ -2,8 +2,8 @@
 #include <WinSock2.h>
 
 #define MAX_CHAR		100
-#define EDP_DATA_SIZE	100
-#define PDP_DATA_SIZE	100
+#define EDP_DATA_SIZE	10000
+#define PDP_DATA_SIZE	10000
 #define MAX_DATA_SIZE	10000
 #define NULL			0
 
@@ -23,7 +23,9 @@
 #define NODE_TYPE_PUB			100
 #define NODE_TYPE_SUB			200
 #define BUFSIZE					100		// 받아올 데이터 최대 크기
-#define PORT					3001		// 포트번호 할당
+#define FES_PORT				3000		// 포트번호 할당
+#define TNS_PORT				3001		// 포트번호 할당
+
 
 
 
@@ -59,8 +61,8 @@ typedef struct _TN_NODE {
 
 // RequestTable
 typedef struct _R_ENTRY {
-	SOCKET				REQUEST_SOCEKT;
 	TNSN_ENTRY			REQUEST_DATA;
+	IN_ADDR				REQUEST_IP;
 } R_ENTRY, *PR_ENTRY;
 
 typedef struct _R_NODE {

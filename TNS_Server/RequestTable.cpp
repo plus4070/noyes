@@ -42,12 +42,12 @@ PR_NODE RequestTable::getLastEntry() {
 	return currentNode;
 }
 
-void	RequestTable::addEntry(SOCKET requestSocket, TNSN_ENTRY message) {
+void	RequestTable::addEntry(IN_ADDR ip, TNSN_ENTRY message) {
 	R_ENTRY entry;
 	PR_NODE newNode = (PR_NODE)malloc(sizeof(R_NODE));
 
-	entry.REQUEST_SOCEKT = requestSocket;
 	memcpy(&(entry.REQUEST_DATA), (char *)&message, sizeof(TNSN_ENTRY));
+	entry.REQUEST_IP = ip;
 
 	newNode->key = entry;
 	newNode->next = NULL;

@@ -2,7 +2,6 @@
 #include "TCPSocket.h"
 #include "TopicNameTable.h"
 
-
 static UINT WINAPI sending(LPVOID p);
 static UINT WINAPI receiving(LPVOID p);
 void ErrorHandling(char *message);
@@ -107,7 +106,8 @@ void TCPSocket::inputDummyEntryToTNTable() {
 	TNTable->addEntry(TE);
 	TE.TN_LEVEL = 5;
 	memcpy(TE.TN_TOKEN, "EEEEE", sizeof("EEEEE"));
-	memcpy(TE.TN_NEXTZONE, "192.168.0.22", ADDRESS_SIZE);
+	memcpy(TE.TN_NEXTZONE, "127.0.0.1", ADDRESS_SIZE);
+	//memcpy(TE.TN_NEXTZONE, "192.168.0.22", ADDRESS_SIZE);
 	TNTable->addEntry(TE);
 	TNTable->testShowAll();
 }
@@ -150,12 +150,16 @@ void TCPSocket::Response() {
 	}
 }
 
-void TCPSocket::SaveRequests(SOCKET rSocket, TNSN_ENTRY tnsData) {
-	RTable->addEntry(rSocket, tnsData);
+void TCPSocket::SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData) {
+	RTable->addEntry(ip, tnsData);
 }
 
+
 static UINT WINAPI sending(LPVOID p) {
-	TCPSocket * tcpSocket = (TCPSocket*)p;
+	TCPSocket *		tcpSocket = (TCPSocket*)p;
+	SOCKET			clientSocket;
+	SOCKADDR_IN		tempAddr;
+
 	while (1) {
 		Sleep(10);
 		if (tcpSocket->RTable->isRequestExist()) {
@@ -166,22 +170,26 @@ static UINT WINAPI sending(LPVOID p) {
 
 			if (entry.TNSN_DATATYPE == MESSAGE_TYPE_REQUEST) {
 				//수신 메시지 출력
-				//cout << "Request MSG" << endl;
-				//cout << "Request Topic :" << entry.TNSN_TOPIC << endl;
-				//cout << "Request Token :" << entry.TNSN_TOKEN << endl;
-				//cout << "Request TokenLevel :" << entry.TNSN_TOKENLEVEL << endl;
-				//cout << "Request TYPE :" << entry.TNSN_DATATYPE << endl;
+				cout << "Request MSG" << endl;
+				cout << "Request Topic :" << entry.TNSN_TOPIC << endl;
+				cout << "Request Token :" << entry.TNSN_TOKEN << endl;
+				cout << "Request TokenLevel :" << entry.TNSN_TOKENLEVEL << endl;
+				cout << "Request TYPE :" << entry.TNSN_DATATYPE << endl;
+
 				TE.TN_LEVEL = entry.TNSN_TOKENLEVEL;
 				memcpy(TE.TN_TOPIC, entry.TNSN_TOPIC, sizeof(entry.TNSN_TOPIC));
 				memcpy(TE.TN_TOKEN, entry.TNSN_TOKEN, sizeof(entry.TNSN_TOKEN));
+				
 				if (tcpSocket->TNTable->isEntryExist(TE)) {
 					tcpSocket->TNTable->getEntry(&TE);
 					memcpy(entry.TNSN_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
 					entry.TNSN_DATASIZE = sizeof(TE.TN_NEXTZONE);
 					entry.TNSN_DATATYPE = MESSAGE_TYPE_RESPONSE;
+					cout << "RESPONSE" << endl;
 				}
 				else {
 					entry.TNSN_DATATYPE = MESSAGE_TYPE_NOTEXIST;
+					cout << "NOT EXIST" << endl;
 				}
 
 				//cout << "Response TOKEN :" << TE.TN_TOKEN << "/" << TE.TN_NEXTZONE << endl;
@@ -189,7 +197,29 @@ static UINT WINAPI sending(LPVOID p) {
 			}
 
 			// 에코(데이터를준 클라이언트에 다시 데이터쏘기)
-			send(PN->key.REQUEST_SOCEKT, (char*)&entry, sizeof(entry), 0);
+			//send(PN->key.REQUEST_SOCEKT, (char*)&entry, sizeof(entry), 0);
+
+			clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+
+			if (clientSocket == INVALID_SOCKET)
+				ErrorHandling("clientSocket() error");
+
+			memset(&tempAddr, 0, sizeof(tempAddr));
+			tempAddr.sin_family = AF_INET;
+			tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(PN->key.REQUEST_IP));
+			tempAddr.sin_port = htons(FES_PORT);
+
+			cout << inet_ntoa(PN->key.REQUEST_IP) << endl;
+
+			if (connect(clientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+				ErrorHandling("connect() error!");
+
+			send(clientSocket, (char*)&entry, sizeof(entry), 0);
+
+			closesocket(clientSocket);
+
+			cout << "Send" << endl;
+			cout << "========================" << endl;
 		}
 	}
 }
@@ -212,7 +242,7 @@ static void BindingSocket(SOCKET servSocket){
 
 	servAddr.sin_family = AF_INET;
 	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servAddr.sin_port = htons(PORT);
+	servAddr.sin_port = htons(TNS_PORT);
 
 	// 주소와 Port 할당 (바인드!!)
 	if (bind(servSocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) == SOCKET_ERROR) {
@@ -274,6 +304,9 @@ static UINT WINAPI receiving(LPVOID p) {
 	int index, i;
 	char message[BUFSIZE];
 	int strLen;
+
+	struct sockaddr_in name;
+	int len = sizeof(name);
 
 	hServSock = CreateSocket();
 
@@ -361,10 +394,17 @@ static UINT WINAPI receiving(LPVOID p) {
 					//
 					// 데이터를 받음 (message에 받은 데이터를 담음)
 					strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&TNSNDatagram, sizeof(TNSNDatagram), 0);
-
+					
+					if (getpeername(sockArray[index - WSA_WAIT_EVENT_0], (struct sockaddr *)&name, &len) != 0) {
+						perror("getpeername Error");
+					}
+					
+					//cout << inet_ntoa(name.sin_addr) << endl;
+					//cout << sizeof(inet_ntoa(name.sin_addr)) << endl;					
+					
 					if (strLen != -1) {
 						//RequestTable에 일단 저장
-						tcpSocket->SaveRequests(sockArray[index - WSA_WAIT_EVENT_0], TNSNDatagram);
+						tcpSocket->SaveRequests(name.sin_addr, TNSNDatagram);
 						//Response();
 					}
 

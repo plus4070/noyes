@@ -53,6 +53,6 @@ public:
 	int StartServer();
 	void ResetTCPSocket();
 	void Response();
-	void SaveRequests(SOCKET rSocket, TNSN_ENTRY tnsData);
+	void SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData);
 };
 
