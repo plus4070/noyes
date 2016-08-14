@@ -15,14 +15,13 @@ public:
 	void				resetTable();
 
 	PR_NODE		r_head;
-	PR_NODE		r_tail;
 
 	vector<_R_ENTRY>	requestList;
 	int					numOfRequests;
 
 	bool				isRequestExist();
 	PR_NODE				getLastEntry();
-	void				addEntry(SOCKET requestSocket, TNSN_ENTRY message);
+	void				addEntry(IN_ADDR ip, TNSN_ENTRY message);
 
 };
 

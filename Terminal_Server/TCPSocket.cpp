@@ -83,12 +83,15 @@ void ErrorHandling(char *message)
 	exit(1);
 }
 
-void TCPSocket::SaveRequests(SOCKET rSocket, TNSN_ENTRY tnsData) {
-	RTable->addEntry(rSocket, tnsData);
+void TCPSocket::SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData) {
+	RTable->addEntry(ip, tnsData);
 }
 
 static UINT WINAPI storing(LPVOID p) {
-	TCPSocket * tcpSocket = (TCPSocket*)p;
+	TCPSocket *		tcpSocket = (TCPSocket*)p;
+	SOCKET			clientSocket;
+	SOCKADDR_IN		tempAddr;
+
 	while (1) {
 		Sleep(10);
 		if (tcpSocket->RTable->isRequestExist()) {
@@ -139,7 +142,27 @@ static UINT WINAPI storing(LPVOID p) {
 				puts("ERROR MSG");
 			}
 			// 에코(데이터를준 클라이언트에 다시 데이터쏘기)
-			send(PN->key.REQUEST_SOCEKT, (char*)&entry, sizeof(entry), 0);
+			clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+
+			if (clientSocket == INVALID_SOCKET)
+				ErrorHandling("clientSocket() error");
+
+			memset(&tempAddr, 0, sizeof(tempAddr));
+			tempAddr.sin_family = AF_INET;
+			tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(PN->key.REQUEST_IP));
+			tempAddr.sin_port = htons(FES_PORT);
+
+			//cout << inet_ntoa(PN->key.REQUEST_IP) << endl;
+
+			if (connect(clientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+				ErrorHandling("connect() error!");
+
+			send(clientSocket, (char*)&entry, sizeof(entry), 0);
+
+			closesocket(clientSocket);
+
+			cout << "Send" << endl;
+			cout << "========================" << endl;
 		}
 	}
 }
@@ -162,7 +185,7 @@ static void BindingSocket(SOCKET servSocket) {
 
 	servAddr.sin_family = AF_INET;
 	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servAddr.sin_port = htons(PORT);
+	servAddr.sin_port = htons(TERMINAL_PORT);
 
 	// 주소와 Port 할당 (바인드!!)
 	if (bind(servSocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) == SOCKET_ERROR) {
@@ -224,6 +247,9 @@ static UINT WINAPI receiving(LPVOID p) {
 	int index, i;
 	char message[BUFSIZE];
 	int strLen;
+
+	struct sockaddr_in name;
+	int len = sizeof(name);
 
 	hServSock = CreateSocket();
 
@@ -312,9 +338,16 @@ static UINT WINAPI receiving(LPVOID p) {
 					// 데이터를 받음 (message에 받은 데이터를 담음)
 					strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&TNSNDatagram, sizeof(TNSNDatagram), 0);
 
+					if (getpeername(sockArray[index - WSA_WAIT_EVENT_0], (struct sockaddr *)&name, &len) != 0) {
+						perror("getpeername Error");
+					}
+
+					//cout << inet_ntoa(name.sin_addr) << endl;
+					//cout << sizeof(inet_ntoa(name.sin_addr)) << endl;					
+
 					if (strLen != -1) {
 						//RequestTable에 일단 저장
-						tcpSocket->SaveRequests(sockArray[index - WSA_WAIT_EVENT_0], TNSNDatagram);
+						tcpSocket->SaveRequests(name.sin_addr, TNSNDatagram);
 						//Response();
 					}
 
