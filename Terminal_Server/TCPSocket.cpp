@@ -1,10 +1,13 @@
 #include <process.h>
 #include "TCPSocket.h"
 #include "TerminalTable.h"
+#include "ParticipantDataDistributor.h"
 
 static UINT WINAPI receiving(LPVOID p);
 static UINT WINAPI storing(LPVOID p);
 void ErrorHandling(char *message);
+static SOCKET CreateSocket();
+static void BindingSocket(SOCKET servSocket);
 
 TCPSocket::TCPSocket()
 {
@@ -21,7 +24,14 @@ int TCPSocket::StartServer()
 	HANDLE recvThread = (HANDLE)_beginthreadex(NULL, 0, receiving, (LPVOID)this, 0, NULL);
 	HANDLE saveThread = (HANDLE)_beginthreadex(NULL, 0, storing, (LPVOID)this, 0, NULL);
 
-	while (1) {}
+	inputDummyData();
+	printf("==============PUB LIST==============\n");
+	this->pubList->test_showAllEntry();
+	printf("==============SUB LIST==============\n");
+	this->subList->test_showAllEntry();
+	printf("====================================\n");
+
+	participantDataDistribute();
 
 	CloseHandle(recvThread);
 	CloseHandle(saveThread);
@@ -31,42 +41,71 @@ int TCPSocket::StartServer()
 
 
 void TCPSocket::ResetTCPSocket() {
-	this->sockTotal = 0;
-	this->pubList = new TerminalTable();
-	this->subList = new TerminalTable();
-	this->RTable = new RequestTable();
+	this->sockTotal		= 0;
+	this->pubList		= new TerminalTable();
+	this->subList		= new TerminalTable();
+	this->RTable		= new RequestTable();
+	this->distributor	= new ParticipantDataDistributor();
+	this->distributor->setPubSubList(pubList, subList);
 }
 
+void TCPSocket::participantDataDistribute() {
+	SOCKADDR_IN		tempAddr;
+	vector<IN_ADDR> sendList;
+	int				counter;
 
-/************************************
-/*
-/*	CompressSockets
-/*
-*/
-//void TCPSocket::CompressSockets(SOCKET* hSockArray, int omitIndex, int total)
-void CompressSockets(SOCKET* hSockArray, int omitIndex, int total)
-{
-	int i;
+	PPDD_NODE PDatagram		= (PPDD_NODE)malloc(sizeof(_PDD_NODE));
+	SOCKET ClientSocket		= CreateSocket();
 
-	for (i = omitIndex; i<total; i++)
-	{
-		hSockArray[i] = hSockArray[i + 1];
-	}
-}
+	memset(&tempAddr, 0, sizeof(tempAddr));
+	tempAddr.sin_family = AF_INET;
+	tempAddr.sin_port = htons(DDS_PORT);
+	//Socket 생성 후 Send
+	while (true) {
+		Sleep(10);
+		if (this->distributor->checkModifyTableEntry()) {
+			sendList = this->distributor->getParticipantData(PDatagram, NODE_TYPE_PUB);
+			if (PDatagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA != 0) {
+				for (counter = 0; counter < sendList.size(); counter++) {
+					ClientSocket = CreateSocket();
 
-/************************************
-/*
-/*	CompressEvents
-/*
-*/
-//void TCPSocket::CompressEvents(WSAEVENT* hEventArray, int omitIndex, int total)
-void CompressEvents(WSAEVENT* hEventArray, int omitIndex, int total)
-{
-	int i;
+					Sleep(100);
 
-	for (i = omitIndex; i<total; i++)
-	{
-		hEventArray[i] = hEventArray[i + 1];
+					tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(sendList[counter]));
+
+					printf("[PUB]Sending to %s..... \n", inet_ntoa(sendList[counter]));
+
+					if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+						ErrorHandling("pub connect() error!");
+
+					send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
+
+					closesocket(ClientSocket);
+
+					printf("[PUB]Complete ..... \n");
+				}
+			}
+
+			sendList = this->distributor->getParticipantData(PDatagram, NODE_TYPE_SUB);
+			if (PDatagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA != 0 ) {
+				for (counter = 0; counter < sendList.size(); counter++) {
+					ClientSocket = CreateSocket();
+
+					tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(sendList[counter]));
+					
+					printf("[SUB]Sending to %s..... \n", inet_ntoa(sendList[counter]));
+
+					if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+						ErrorHandling("sub connect() error!");
+
+					send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
+
+					closesocket(ClientSocket);
+
+					printf("[SUB]Complete ..... \n");
+				}
+			}
+		}
 	}
 }
 
@@ -179,20 +218,20 @@ static SOCKET CreateSocket() {
 	return servSock;
 }
 
-static void BindingSocket(SOCKET servSocket) {
+static void BindingSocket(SOCKET servSocket, int PORT) {
 	// 소켓 통신을 위한 기본 정보
 	SOCKADDR_IN servAddr;
 
 	servAddr.sin_family = AF_INET;
 	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servAddr.sin_port = htons(TERMINAL_PORT);
+	servAddr.sin_port = htons(PORT);
 
 	// 주소와 Port 할당 (바인드!!)
 	if (bind(servSocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) == SOCKET_ERROR) {
 		ErrorHandling("bind() error");
 	}
-
 }
+
 static void LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
 	//static void LinkingEvents(SOCKET servSock, int* sockNum, SOCKET sockArray[WSA_MAXIMUM_WAIT_EVENTS], WSAEVENT eventArray[WSA_MAXIMUM_WAIT_EVENTS]) {
 	// 이벤트 발생을 확인 (성공시 0, 실패시 "SOCKET_ERROR" 반환)
@@ -253,7 +292,7 @@ static UINT WINAPI receiving(LPVOID p) {
 
 	hServSock = CreateSocket();
 
-	BindingSocket(hServSock);
+	BindingSocket(hServSock, TERMINAL_PORT);
 
 	LinkingEvents(hServSock, &sockTotal, &hSockArray, &hEventArray);
 
@@ -394,4 +433,94 @@ static UINT WINAPI receiving(LPVOID p) {
 	WSACleanup();
 
 	return 0;
+}
+
+void TCPSocket::inputDummyData() {
+	T_ENTRY dummy, dummy2, dummy3;
+	memcpy(dummy.TD_DOMAIN, "DDS_1", sizeof("DDS_1"));
+	memcpy(dummy.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	dummy.TD_LEVEL = 5;
+	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	memcpy(dummy2.TD_DOMAIN, "DDS_1", sizeof("DDS_1"));
+	memcpy(dummy2.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	dummy2.TD_LEVEL = 6;
+	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	memcpy(dummy3.TD_DOMAIN, "DDS_1", sizeof("DDS_1"));
+	memcpy(dummy3.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	dummy3.TD_LEVEL = 7;
+	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	this->pubList->addTopic(dummy);
+	this->pubList->addTopic(dummy2);
+	this->pubList->addTopic(dummy3);
+
+	this->subList->addTopic(dummy);
+	this->subList->addTopic(dummy2);
+	this->subList->addTopic(dummy3);
+
+	memcpy(dummy.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
+	memcpy(dummy.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	dummy.TD_LEVEL = 5;
+	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	memcpy(dummy2.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
+	memcpy(dummy2.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	dummy2.TD_LEVEL = 6;
+	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	memcpy(dummy3.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
+	memcpy(dummy3.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	dummy3.TD_LEVEL = 7;
+	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	this->pubList->addTopic(dummy);
+	this->pubList->addTopic(dummy2);
+	this->pubList->addTopic(dummy3);
+
+	this->subList->addTopic(dummy);
+	this->subList->addTopic(dummy2);
+	this->subList->addTopic(dummy3);
+
+	memcpy(dummy.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
+	memcpy(dummy.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	dummy.TD_LEVEL = 5;
+	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	memcpy(dummy2.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
+	memcpy(dummy2.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	dummy2.TD_LEVEL = 6;
+	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	memcpy(dummy3.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
+	memcpy(dummy3.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	dummy3.TD_LEVEL = 7;
+	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
+
+	this->pubList->addTopic(dummy);
+	this->pubList->addTopic(dummy2);
+	this->pubList->addTopic(dummy3);
+
+	this->subList->addTopic(dummy);
+	this->subList->addTopic(dummy2);
+	this->subList->addTopic(dummy3);
 }

@@ -1,9 +1,9 @@
-
 // 해더파일 선언
 #include <winsock2.h>
+#include "stdafx.h"
+#include "ParticipantDataDistributor.h"
 #include "TerminalTable.h"
 #include "RequestTable.h"
-#include "stdafx.h"
 
 using namespace std;
 
@@ -14,10 +14,11 @@ using namespace std;
 class TCPSocket
 {
 public:
-	TNSN_ENTRY TNSNDatagram;
-	RequestTable *	RTable;
-	TerminalTable *pubList;
-	TerminalTable *subList;
+	TNSN_ENTRY					TNSNDatagram;
+	RequestTable *				RTable;
+	TerminalTable *				pubList;
+	TerminalTable *				subList;
+	ParticipantDataDistributor*	distributor;
 
 private:
 	// 변수 선언	
@@ -39,9 +40,6 @@ private:
 	char message[BUFSIZE];
 	int strLen;
 
-	void CompressSockets(SOCKET* hSockArray, int omitIndex, int total);
-	void CompressEvents(WSAEVENT* hEventArray, int omitIndex, int total);
-
 
 public:
 	TCPSocket();
@@ -50,5 +48,6 @@ public:
 	void ResetTCPSocket();
 	void Response();
 	void SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData);
-	
+	void participantDataDistribute();
+	void inputDummyData();
 };
