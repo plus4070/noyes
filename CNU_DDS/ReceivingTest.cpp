@@ -5,13 +5,14 @@
 
 #define MAX_CHAR		100
 #define MAX_DATA_SIZE	1000
+#define MAX_PDD_NUMBER  25
 
 using namespace std;
 
 namespace CNU_DDS
 {
 	typedef struct _PDD_HEADER {
-		char *				PARTICIPANT_DOMAIN_ID;
+		char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
 		int					PARTICIPANT_DOMAIN_SIZE;
 		int					PARTICIPANT_NODE_TYPE;
 		int					PARTICIPANT_NUMBER_OF_DATA;
@@ -24,7 +25,7 @@ namespace CNU_DDS
 
 	typedef struct _PDD_NODE {
 		PDD_HEADER			PDD_HEADER;
-		PDD_DATA *			PDD_DATA;
+		PDD_DATA 			PDD_DATA[MAX_PDD_NUMBER];
 	} PDD_NODE, *PPDD_NODE;
 
 	void ErrorHandling(char *message)
@@ -102,7 +103,7 @@ namespace CNU_DDS
 		WSAEVENT newEvent;
 		WSANETWORKEVENTS netEvents;
 
-		PPDD_NODE receiveData;
+		PDD_NODE receiveData;
 
 		int clntLen;
 		int sockTotal = 0;
@@ -112,6 +113,11 @@ namespace CNU_DDS
 		
 		struct sockaddr_in name;
 		int len = sizeof(name);
+
+		// 윈속 초기화 (성공시 0, 실패시 에러 코드리턴)
+		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+			ErrorHandling("WSAStartup() error!");
+		}
 
 		hServSock = CreateSocket();
 
@@ -199,7 +205,7 @@ namespace CNU_DDS
 						//		서버 작업은 여기서 다하겠지..
 						//
 						// 데이터를 받음 (message에 받은 데이터를 담음)
-						strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)receiveData, sizeof(_PDD_NODE), 0);
+						strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&receiveData, sizeof(_PDD_NODE), 0);
 
 						if (getpeername(sockArray[index - WSA_WAIT_EVENT_0], (struct sockaddr *)&name, &len) != 0) {
 							perror("getpeername Error");
@@ -211,13 +217,13 @@ namespace CNU_DDS
 						if (strLen != -1) {
 							// 출력
 							cout << "======================================================================" << endl;
-							cout << "Domain ID		:	"<< receiveData->PDD_HEADER.PARTICIPANT_DOMAIN_ID << endl;
-							cout << "NODE TYPE		:	"<< receiveData->PDD_HEADER.PARTICIPANT_NODE_TYPE << endl;
-							cout << "NUM OF DATA	:	"<< receiveData->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
-							for (int k = 0 ; k < receiveData->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA ; k++){
+							cout << "Domain ID		:	"<< receiveData.PDD_HEADER.PARTICIPANT_DOMAIN_ID << endl;
+							cout << "NODE TYPE		:	"<< receiveData.PDD_HEADER.PARTICIPANT_NODE_TYPE << endl;
+							cout << "NUM OF DATA		:	"<< receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
+							for (int k = 0 ; k < receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA ; k++){
 								cout << "**********************************************************************" << endl;
-								cout << "TOPIC			:	"<< receiveData->PDD_HEADER.PARTICIPANT_DOMAIN_ID << endl;
-								cout << "DATA			:	"<< receiveData->PDD_HEADER.PARTICIPANT_DOMAIN_ID << endl;
+								cout << "TOPIC			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_TOPIC << endl;
+								cout << "DATA			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_DATA << endl;
 							}
 							cout << "======================================================================" << endl;
 						}
