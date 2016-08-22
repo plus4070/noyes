@@ -19,9 +19,9 @@ void		TopicNameSpaceTable::resetTable() {
 	topicParser = new TopicParser();
 }
 
-void		TopicNameSpaceTable::addEntry(char topic[MAX_CHAR], char addr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s) {
+void		TopicNameSpaceTable::addEntry(char topic[MAX_CHAR], char domain[MAX_CHAR] , char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s, int nodetype) {
 	
-	TNSP_ENTRY entry = makeTopicNameEntry(topic, addr, data, s);
+	TNSP_ENTRY entry = makeTopicNameEntry(topic, domain, addr, paddr, data, s, nodetype);
 	PTNSP_NODE newNode = (PTNSP_NODE)malloc(sizeof(TNSP_NODE));
 
 	newNode->key = entry;
@@ -42,18 +42,21 @@ void		TopicNameSpaceTable::addEntry(char topic[MAX_CHAR], char addr[ADDRESS_SIZE
 }
 
 
-TNSP_ENTRY	TopicNameSpaceTable::makeTopicNameEntry(char topic[MAX_CHAR], char addr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s) {
+TNSP_ENTRY	TopicNameSpaceTable::makeTopicNameEntry(char topic[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s, int nodetype) {
 	vector<string> topicVector = topicParser->split(topic);
 
 	TNSP_ENTRY entry;
+	memcpy(entry.TN_SPACE_DOMAIN, domain, MAX_CHAR);
 	memcpy(entry.TN_SPACE_TOPIC, topic, MAX_CHAR);
 	memcpy(entry.TN_SPACE_TOKEN, topicVector.at(0).c_str(), MAX_CHAR);
 	entry.TN_SPACE_TOTAL_LEVEL = topicVector.size();
 	entry.TN_SPACE_CURRENT_LEVEL = 1;
 	entry.TN_SPACE_STATE = STATE_NEW;
 	memcpy(entry.TN_SPACE_NEXTZONE_ADDR, addr, ADDRESS_SIZE);
+	memcpy(entry.TN_SPACE_PARTICIPANT_ADDR, paddr, ADDRESS_SIZE);
 	entry.TN_SPACE_ID = numOfRequests;
 	entry.TN_SPACE_CURRENT_SOCKET = s;
+	entry.TN_SPACE_NODETYPE = nodetype;
 	memcpy(entry.TN_SPACE_DATA, data, MAX_DATA_SIZE);
 
 	return entry;

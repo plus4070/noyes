@@ -42,8 +42,7 @@ void TCPSocket::ResetTCPSocket() {
 }
 
 void TCPSocket::inputDummy() {
-	this->TNSPTable->addEntry("A/BB/CCC/DDDD/EEEEEE", "127.0.0.1", "DDS_TEST_DATA", NULL);
-
+	this->TNSPTable->addEntry("Q/WW/EEE/RRRR/TTTTTT", "DDS_3", "127.0.0.1", "127.0.0.9", "DDS_TEST_DATA", NULL, NODE_TYPE_PUB);
 }
 
 
@@ -139,16 +138,17 @@ static UINT WINAPI storing(LPVOID p) {
 				TNSNDatagram.TNSN_DATATYPE = MESSAGE_TYPE_REQUEST;
 			}
 
-			if (true)
+			if (PTNSP->key.TN_SPACE_NODETYPE == NODE_TYPE_PUB)
 				TNSNDatagram.TNSN_NODETYPE = NODE_TYPE_PUB;
 			else
 				TNSNDatagram.TNSN_NODETYPE = NODE_TYPE_SUB;
 
 			TNSNDatagram.TNSN_ID = PTNSP->key.TN_SPACE_ID;
+			memcpy(TNSNDatagram.TNSN_DOMAIN, PTNSP->key.TN_SPACE_DOMAIN, sizeof(PTNSP->key.TN_SPACE_DOMAIN));
 			memcpy(TNSNDatagram.TNSN_TOPIC, PTNSP->key.TN_SPACE_TOPIC, sizeof(PTNSP->key.TN_SPACE_TOPIC));
 			memcpy(TNSNDatagram.TNSN_TOKEN, PTNSP->key.TN_SPACE_TOKEN, sizeof(PTNSP->key.TN_SPACE_TOKEN));
+			memcpy(TNSNDatagram.TNSN_PARTICIPANT_ADDR, PTNSP->key.TN_SPACE_PARTICIPANT_ADDR, ADDRESS_SIZE);
 			TNSNDatagram.TNSN_TOKENLEVEL = PTNSP->key.TN_SPACE_CURRENT_LEVEL;
-			TNSNDatagram.TNSN_DATASIZE = sizeof(TNSNDatagram.TNSN_DATA);
 
 			cout << "SEND TYPE :" << TNSNDatagram.TNSN_DATATYPE << endl;
 			cout << "====================" << endl;

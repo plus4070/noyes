@@ -19,10 +19,10 @@ public:
 
 	void		resetTable();
 
-	void		addEntry(char topic[MAX_CHAR], char addr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s);
+	void		addEntry(char topic[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s, int nodetype);
 	void		removeEntry(int id);
 	void		setEntry(int id, char addr[ADDRESS_SIZE], int state);
-	TNSP_ENTRY	makeTopicNameEntry(char topic[MAX_CHAR], char addr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s);
+	TNSP_ENTRY	makeTopicNameEntry(char topic[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], char data[MAX_DATA_SIZE], SOCKET s, int nodetype);
 	
 	bool		isEntryExist(int state);
 	PTNSP_NODE	getEntry(int state);
