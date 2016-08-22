@@ -132,7 +132,6 @@ void TCPSocket::Response() {
 			if (TNTable->isEntryExist(TE)) {
 				TNTable->getEntry(&TE);
 				memcpy(entry.TNSN_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
-				entry.TNSN_DATASIZE = sizeof(TE.TN_NEXTZONE);
 				entry.TNSN_DATATYPE = MESSAGE_TYPE_RESPONSE;
 			}
 			else {
@@ -183,7 +182,6 @@ static UINT WINAPI sending(LPVOID p) {
 				if (tcpSocket->TNTable->isEntryExist(TE)) {
 					tcpSocket->TNTable->getEntry(&TE);
 					memcpy(entry.TNSN_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
-					entry.TNSN_DATASIZE = sizeof(TE.TN_NEXTZONE);
 					entry.TNSN_DATATYPE = MESSAGE_TYPE_RESPONSE;
 					cout << "RESPONSE" << endl;
 				}
