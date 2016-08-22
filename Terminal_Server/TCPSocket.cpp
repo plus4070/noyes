@@ -25,13 +25,12 @@ int TCPSocket::StartServer()
 	HANDLE saveThread = (HANDLE)_beginthreadex(NULL, 0, storing, (LPVOID)this, 0, NULL);
 
 	inputDummyData();
-	printf("==============PUB LIST==============\n");
-	this->pubList->test_showAllEntry();
-	printf("==============SUB LIST==============\n");
-	this->subList->test_showAllEntry();
+	printf("==============  LIST  ==============\n");
+	this->participantList->test_showAllEntry();
 	printf("====================================\n");
 
 	participantDataDistribute();
+	
 
 	CloseHandle(recvThread);
 	CloseHandle(saveThread);
@@ -42,11 +41,10 @@ int TCPSocket::StartServer()
 
 void TCPSocket::ResetTCPSocket() {
 	this->sockTotal		= 0;
-	this->pubList		= new TerminalTable();
-	this->subList		= new TerminalTable();
+	this->participantList = new TerminalTable();
 	this->RTable		= new RequestTable();
 	this->distributor	= new ParticipantDataDistributor();
-	this->distributor->setPubSubList(pubList, subList);
+	this->distributor->setPubSubList(participantList);
 }
 
 void TCPSocket::participantDataDistribute() {
@@ -63,6 +61,7 @@ void TCPSocket::participantDataDistribute() {
 	//Socket 생성 후 Send
 	while (true) {
 		Sleep(10);
+		/*
 		if (this->distributor->checkModifyTableEntry()) {
 			sendList = this->distributor->getParticipantData(PDatagram, NODE_TYPE_PUB);
 			if (PDatagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA != 0) {
@@ -106,6 +105,10 @@ void TCPSocket::participantDataDistribute() {
 				}
 			}
 		}
+		*/
+		if (this->distributor->checkModifyTableEntry()) {
+			this->distributor->getParticipantData(PDatagram, NODE_TYPE_PUB);
+		}
 	}
 }
 
@@ -137,13 +140,14 @@ static UINT WINAPI storing(LPVOID p) {
 			T_ENTRY TD;
 			//저장된 RequestTable에서 꺼내와서 데이터 송신
 			PR_NODE PN = tcpSocket->RTable->getLastEntry();
+
+			//echo Data
 			TNSN_ENTRY entry = PN->key.REQUEST_DATA;
 
 			if (entry.TNSN_DATATYPE == MESSAGE_TYPE_SAVE) {
 				//수신 메시지 출력
 				cout << "SAVE MSG" << endl;
 				cout << "SAVE Topic :" << entry.TNSN_TOPIC << endl;
-				cout << "SAVE Token :" << entry.TNSN_TOKEN << endl;
 				cout << "SAVE TokenLevel :" << entry.TNSN_TOKENLEVEL << endl;
 				cout << "SAVE TYPE :" << entry.TNSN_DATATYPE << endl;
 
@@ -151,31 +155,24 @@ static UINT WINAPI storing(LPVOID p) {
 
 				//테이블에 엔트리 삽입
 				T_NODE * addNode = new T_NODE;
-				//memset(addNode->key.token, 0, sizeof(addNode->key.token));
-				//memset(addNode->key.topic, 0, sizeof(addNode->key.topic));
-				//memset(addNode->key.topic_data, 0, sizeof(addNode->key.topic_data));
-
-				//dummy
-				addNode->key.TD_LEVEL = 3;
-				memcpy(addNode->key.TD_TOPIC, entry.TNSN_TOPIC, sizeof(entry.TNSN_TOPIC));
-				memcpy(addNode->key.TD_TOKEN, entry.TNSN_TOKEN, sizeof(entry.TNSN_TOKEN));
-				memcpy(addNode->key.TD_DATA, entry.TNSN_DATA, sizeof(entry.TNSN_DATA));
-
-				if (entry.TNSN_NODETYPE == NODE_TYPE_PUB)
-					tcpSocket->pubList->addTopic(addNode->key);
-				else if (entry.TNSN_NODETYPE == NODE_TYPE_SUB)
-					tcpSocket->subList->addTopic(addNode->key);
-				else
-					puts("TYPE ERROR!");
+				T_ENTRY receiveData;
+				
+				memcpy(receiveData.TD_TOPIC, entry.TNSN_TOPIC, MAX_CHAR);
+				memcpy(receiveData.TD_DOMAIN, entry.TNSN_DOMAIN, MAX_CHAR);
+				receiveData.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr(entry.TNSN_PARTICIPANT_ADDR);
+				receiveData.TD_PUBSUBTYPE = entry.TNSN_NODETYPE;
+				memcpy(receiveData.TD_DATA, entry.TNSN_DATA, MAX_DATA_SIZE);
+				receiveData.TD_CHANGE_FLAG = true;
 
 
-				cout << "=========== PUB LIST ===========" << endl;
-				tcpSocket->pubList->test_showAllEntry();
-				cout << "=========== SUB LIST ===========" << endl;
-				tcpSocket->subList->test_showAllEntry();
+				//TerminalTable에 Entry 저장
+				tcpSocket->participantList->addEntry(receiveData);
+				
+
+				cout << "===========   LIST   ===========" << endl;
+				tcpSocket->participantList->test_showAllEntry();
 
 				memcpy(entry.TNSN_DATA, "SAVE COMPLETE", sizeof("SAVE COMPLETE"));
-				entry.TNSN_DATASIZE = sizeof(entry.TNSN_DATA);
 			}
 			else {
 				puts("ERROR MSG");
@@ -439,88 +436,103 @@ void TCPSocket::inputDummyData() {
 	T_ENTRY dummy, dummy2, dummy3;
 	memcpy(dummy.TD_DOMAIN, "DDS_1", sizeof("DDS_1"));
 	memcpy(dummy.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	dummy.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
 	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
-	dummy.TD_LEVEL = 5;
 	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy2.TD_DOMAIN, "DDS_1", sizeof("DDS_1"));
 	memcpy(dummy2.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	dummy2.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
 	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
-	dummy2.TD_LEVEL = 6;
 	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy3.TD_DOMAIN, "DDS_1", sizeof("DDS_1"));
 	memcpy(dummy3.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	dummy3.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
 	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
-	dummy3.TD_LEVEL = 7;
 	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
-	this->pubList->addTopic(dummy);
-	this->pubList->addTopic(dummy2);
-	this->pubList->addTopic(dummy3);
+	this->participantList->addEntry(dummy);
+	this->participantList->addEntry(dummy2);
+	this->participantList->addEntry(dummy3);
 
-	this->subList->addTopic(dummy);
-	this->subList->addTopic(dummy2);
-	this->subList->addTopic(dummy3);
+	dummy.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+	dummy2.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+	dummy3.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+
+
+	this->participantList->addEntry(dummy);
+	this->participantList->addEntry(dummy2);
+	this->participantList->addEntry(dummy3);
 
 	memcpy(dummy.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
 	memcpy(dummy.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	dummy.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
 	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
-	dummy.TD_LEVEL = 5;
 	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy2.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
 	memcpy(dummy2.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	dummy2.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
 	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
-	dummy2.TD_LEVEL = 6;
 	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy3.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
 	memcpy(dummy3.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	dummy3.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
 	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
-	dummy3.TD_LEVEL = 7;
 	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
-	this->pubList->addTopic(dummy);
-	this->pubList->addTopic(dummy2);
-	this->pubList->addTopic(dummy3);
+	this->participantList->addEntry(dummy);
+	this->participantList->addEntry(dummy2);
+	this->participantList->addEntry(dummy3);
 
-	this->subList->addTopic(dummy);
-	this->subList->addTopic(dummy2);
-	this->subList->addTopic(dummy3);
+	dummy.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+	dummy2.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+	dummy3.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+
+	this->participantList->addEntry(dummy);
+	this->participantList->addEntry(dummy2);
+	this->participantList->addEntry(dummy3);
 
 	memcpy(dummy.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
 	memcpy(dummy.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	dummy.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
 	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
-	dummy.TD_LEVEL = 5;
 	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy2.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
 	memcpy(dummy2.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	dummy2.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
 	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
-	dummy2.TD_LEVEL = 6;
 	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy3.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
 	memcpy(dummy3.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
-	memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	dummy3.TD_PUBSUBTYPE = NODE_TYPE_PUB;
+	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
 	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
-	dummy3.TD_LEVEL = 7;
 	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
-	this->pubList->addTopic(dummy);
-	this->pubList->addTopic(dummy2);
-	this->pubList->addTopic(dummy3);
+	this->participantList->addEntry(dummy);
+	this->participantList->addEntry(dummy2);
+	this->participantList->addEntry(dummy3);
 
-	this->subList->addTopic(dummy);
-	this->subList->addTopic(dummy2);
-	this->subList->addTopic(dummy3);
+	dummy.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+	dummy2.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+	dummy3.TD_PUBSUBTYPE = NODE_TYPE_SUB;
+
+	this->participantList->addEntry(dummy);
+	this->participantList->addEntry(dummy2);
+	this->participantList->addEntry(dummy3);
+
+	printf("Input Complete\n");
 }

@@ -32,24 +32,26 @@
 #define TERMINAL_PORT			3002	// 포트번호 할당
 #define DDS_PORT				4000
 
+using namespace std;
+
 // TCPSocket
 typedef struct _TNSN_ENTRY {
 	int				TNSN_ID;
+	char			TNSN_DOMAIN[MAX_CHAR];
 	char			TNSN_TOPIC[MAX_CHAR];
 	char			TNSN_TOKEN[MAX_CHAR];
 	int				TNSN_TOKENLEVEL;
 	int				TNSN_NODETYPE;
 	int				TNSN_DATATYPE;
-	int				TNSN_DATASIZE;
-	char			TNSN_DATA[MAX_CHAR];
+	char			TNSN_PARTICIPANT_ADDR[ADDRESS_SIZE];
+	char			TNSN_DATA[MAX_DATA_SIZE];
 } TNSN_ENTRY, *PTNSN_ENTRY;
 
 // TopicTable
 typedef struct _T_ENTRY {
 	char			TD_DOMAIN[MAX_CHAR];
 	char			TD_TOPIC[MAX_CHAR];
-	char			TD_TOKEN[MAX_CHAR];
-	int				TD_LEVEL;
+	int				TD_PUBSUBTYPE;
 	char			TD_DATA[PDP_DATA_SIZE];
 	IN_ADDR			TD_PARTICIPANT_IP;
 	bool			TD_CHANGE_FLAG;
@@ -61,27 +63,27 @@ typedef struct _T_NODE {
 } T_NODE, *PT_NODE;
 
 typedef struct _PARTICIPANT_ENTRY {
-	char					TD_DATA[PDP_DATA_SIZE];
 	IN_ADDR					TD_PARTICIPANT_IP;
+	char					TD_DATA[PDP_DATA_SIZE];
 	bool					TD_CHANGE_FLAG;
+	_PARTICIPANT_ENTRY		*next;
 } PARTICIPANT_ENTRY, *PPARTICIPANT_ENTRY;
 
 typedef struct _TOPIC_ENTRY {
 	char					TD_TOPIC[MAX_CHAR];
-	int						TD_LEVEL;
-	bool					TD_CHANGE_FLAG;
-	int						NumOfUnderEntry;
-	list<PARTICIPANT_ENTRY> PARTICIPANT_LIST;
+	bool					TD_CHANGE_FLAG_OF_PUB;
+	bool					TD_CHANGE_FLAG_OF_SUB;
+	PPARTICIPANT_ENTRY		PUB_PARTICIPANT_LIST;
+	PPARTICIPANT_ENTRY		SUB_PARTICIPANT_LIST;
 	struct _TOPIC_ENTRY		*next;
 } TOPIC_ENTRY, *PTOPIC_ENTRY;
 
 typedef struct _DOMAIN_ENTRY {
 	char					TD_DOMAIN[MAX_CHAR];
 	bool					TD_CHANGE_FLAG;
-	int						NumOfUnderEntry;
+	PTOPIC_ENTRY			TOPIC;
 	struct _DOMAIN_ENTRY	*next;
 } DOMAIN_ENTRY, *PDOMAIN_ENTRY;
-
 
 // RequestTable
 typedef struct _R_ENTRY {
@@ -98,7 +100,6 @@ typedef struct _R_NODE {
 // participantDataDistributor
 typedef struct _PDD_HEADER {
 	char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
-	int					PARTICIPANT_DOMAIN_SIZE;
 	int					PARTICIPANT_NODE_TYPE;
 	int					PARTICIPANT_NUMBER_OF_DATA;
 } PDD_HEADER, *PPDD_HEADER;
@@ -106,9 +107,12 @@ typedef struct _PDD_HEADER {
 typedef struct _PDD_DATA {
 	char				PARTICIPANT_TOPIC[MAX_CHAR];
 	char 				PARTICIPANT_DATA[MAX_DATA_SIZE];
+	IN_ADDR				PARTICIPANT_IP;
 } PDD_DATA, *PPDD_DATA;
 
 typedef struct _PDD_NODE {
 	PDD_HEADER			PDD_HEADER;
 	PDD_DATA 			PDD_DATA[MAX_PDD_NUMBER];
 } PDD_NODE, *PPDD_NODE;
+
+

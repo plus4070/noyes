@@ -16,8 +16,7 @@ class TCPSocket
 public:
 	TNSN_ENTRY					TNSNDatagram;
 	RequestTable *				RTable;
-	TerminalTable *				pubList;
-	TerminalTable *				subList;
+	TerminalTable *				participantList;
 	ParticipantDataDistributor*	distributor;
 
 private:

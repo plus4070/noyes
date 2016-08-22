@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <vector>
+#include <list>
 #pragma once
 
 #define MAX_CHAR 100
@@ -18,9 +19,19 @@ public:
 
 	void				resetTable();
 	bool				isEntryExist(T_ENTRY entry);
-	bool				addTopic(T_ENTRY entry);
+	bool				addTopic2(T_ENTRY entry);
+
+	bool				addEntry(T_ENTRY entry);
+	bool				addEntryToDomain(T_ENTRY entry);
+	bool				addEntryToTopic(T_ENTRY entry, DOMAIN_ENTRY * domainNode);
+	bool				addEntryToParticipant(T_ENTRY entry, TOPIC_ENTRY * topicNode);
+
 	bool				deleteTopic(T_ENTRY entry);
-		
+	
+	bool				isDomainExist(char * domain);
+	bool				isTopicExist(char * topic, TOPIC_ENTRY * topicNode);
+	int					isParticipantExist(PARTICIPANT_ENTRY participant, list<PARTICIPANT_ENTRY> list);
+
 	void				resetModifyFlag();
 	bool				isTableModified();
 
@@ -29,7 +40,10 @@ public:
 
 	vector<IN_ADDR>		getAllAddressList();
 
+
+	PDOMAIN_ENTRY d_head;
+	bool	isModifyEntryExist;
+
 private:
 	PT_NODE t_head;
-	bool	isModifyEntryExist;
 };
