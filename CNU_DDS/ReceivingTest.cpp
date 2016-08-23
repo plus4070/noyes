@@ -6,20 +6,22 @@
 #define MAX_CHAR		100
 #define MAX_DATA_SIZE	1000
 #define MAX_PDD_NUMBER  25
+#define	ADDRESS_SIZE	16
 
 using namespace std;
 
 namespace CNU_DDS
 {
 	typedef struct _PDD_HEADER {
-		char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
-		int					PARTICIPANT_DOMAIN_SIZE;
-		int					PARTICIPANT_NODE_TYPE;
 		int					PARTICIPANT_NUMBER_OF_DATA;
+
 	} PDD_HEADER, *PPDD_HEADER;
 
 	typedef struct _PDD_DATA {
+		int					PARTICIPANT_NODE_TYPE;
+		char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
 		char				PARTICIPANT_TOPIC[MAX_CHAR];
+		char				PARTICIPANT_IP[ADDRESS_SIZE];
 		char 				PARTICIPANT_DATA[MAX_DATA_SIZE];
 	} PDD_DATA, *PPDD_DATA;
 
@@ -217,12 +219,13 @@ namespace CNU_DDS
 						if (strLen != -1) {
 							// Ãâ·Â
 							cout << "======================================================================" << endl;
-							cout << "Domain ID		:	"<< receiveData.PDD_HEADER.PARTICIPANT_DOMAIN_ID << endl;
-							cout << "NODE TYPE		:	"<< receiveData.PDD_HEADER.PARTICIPANT_NODE_TYPE << endl;
 							cout << "NUM OF DATA		:	"<< receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
 							for (int k = 0 ; k < receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA ; k++){
 								cout << "**********************************************************************" << endl;
+								cout << "NODE TYPE		:	"<< receiveData.PDD_DATA[k].PARTICIPANT_NODE_TYPE << endl;
+								cout << "Domain ID		:	"<< receiveData.PDD_DATA[k].PARTICIPANT_DOMAIN_ID << endl;
 								cout << "TOPIC			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_TOPIC << endl;
+								cout << "TOPIC			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_IP << endl;
 								cout << "DATA			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_DATA << endl;
 							}
 							cout << "======================================================================" << endl;
