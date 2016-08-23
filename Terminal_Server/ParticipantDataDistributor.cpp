@@ -2,6 +2,7 @@
 #include "TerminalTable.h"
 
 
+
 ParticipantDataDistributor::ParticipantDataDistributor()
 {
 }
@@ -19,17 +20,23 @@ bool		ParticipantDataDistributor::checkModifyTableEntry() {
 	return ParticipantList->isTableModified();
 }
 
-vector<IN_ADDR>	ParticipantDataDistributor::getParticipantData(PPDD_NODE PN, int type) {
+
+static bool pairCompare(const pair<IN_ADDR, PDD_DATA> &firstElem, const pair<IN_ADDR, PDD_DATA> &secondElem) {
+	return firstElem.first.S_un.S_addr < secondElem.first.S_un.S_addr;
+}
+
+list<pair<IN_ADDR, PDD_DATA>>	ParticipantDataDistributor::getParticipantData() {
 	//type, 수정된 리스트 Type 조사, 조사한 리스트들의 목록을 다른 타입의 노드들에게 전송하여 저장시킨다.
 	PDD_NODE pPacket;
 	vector<IN_ADDR> sendList;
-
-	char to[ADDRESS_SIZE], from[ADDRESS_SIZE];
+	list<pair<IN_ADDR, PDD_DATA>> datagram;
+	PDD_DATA data;
 
 	PDOMAIN_ENTRY domain = ParticipantList->d_head;
 	PTOPIC_ENTRY topic;
 	PPARTICIPANT_ENTRY currentP;
 	PPARTICIPANT_ENTRY oppositeP;
+	char to[ADDRESS_SIZE], from[ADDRESS_SIZE];
 
 	while (domain != NULL) {
 		if (domain->TD_CHANGE_FLAG) {
@@ -45,7 +52,14 @@ vector<IN_ADDR>	ParticipantDataDistributor::getParticipantData(PPDD_NODE PN, int
 							strcpy(from, inet_ntoa(currentP->TD_PARTICIPANT_IP));
 							while (oppositeP != NULL) {
 								strcpy(to, inet_ntoa(oppositeP->TD_PARTICIPANT_IP));
-								printf("Distribute From : %s -> %s\tData:%s\t[%s\t%s\t%s]\n", from, to, currentP->TD_DATA, domain->TD_DOMAIN, topic->TD_TOPIC, "PUB");
+								//printf("Distribute From : %s -> %s\tData:%s\t[%s\t%s\t%s]\n", from, to, currentP->TD_DATA, domain->TD_DOMAIN, topic->TD_TOPIC, "PUB");
+								memcpy(data.PARTICIPANT_DATA, currentP->TD_DATA, MAX_DATA_SIZE);
+								strcpy(data.PARTICIPANT_DOMAIN_ID, domain->TD_DOMAIN);
+								strcpy(data.PARTICIPANT_TOPIC, topic->TD_TOPIC);
+								data.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+								memcpy(data.PARTICIPANT_IP, from, ADDRESS_SIZE);
+
+								datagram.push_back(make_pair(oppositeP->TD_PARTICIPANT_IP, data));
 								oppositeP = oppositeP->next;
 							}
 						}
@@ -63,7 +77,14 @@ vector<IN_ADDR>	ParticipantDataDistributor::getParticipantData(PPDD_NODE PN, int
 							strcpy(from, inet_ntoa(currentP->TD_PARTICIPANT_IP));
 							while (oppositeP != NULL) {
 								strcpy(to, inet_ntoa(oppositeP->TD_PARTICIPANT_IP));
-								printf("Distribute From : %s -> %s\tData:%s\t[%s\t%s\t%s]\n", from, to, currentP->TD_DATA, domain->TD_DOMAIN, topic->TD_TOPIC, "SUB");
+								//printf("Distribute From : %s -> %s\tData:%s\t[%s\t%s\t%s]\n", from, to, currentP->TD_DATA, domain->TD_DOMAIN, topic->TD_TOPIC, "SUB");
+								memcpy(data.PARTICIPANT_DATA, currentP->TD_DATA, MAX_DATA_SIZE);
+								strcpy(data.PARTICIPANT_DOMAIN_ID, domain->TD_DOMAIN);
+								strcpy(data.PARTICIPANT_TOPIC, topic->TD_TOPIC);
+								data.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+								memcpy(data.PARTICIPANT_IP, from, ADDRESS_SIZE);
+
+								datagram.push_back(make_pair(oppositeP->TD_PARTICIPANT_IP, data));
 								oppositeP = oppositeP->next;
 							}
 						}
@@ -80,30 +101,13 @@ vector<IN_ADDR>	ParticipantDataDistributor::getParticipantData(PPDD_NODE PN, int
 	}
 	this->ParticipantList->isModifyEntryExist = false;
 
-	/*
-	if (PublicationList->isTableModified() && type == NODE_TYPE_PUB) {
-		//발간자 변경 리스트 조사, 전파 당할 대상 PUB
-		pPacket.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA = PublicationList->getAllModifiedData(pPacket.PDD_DATA);
-		memcpy(pPacket.PDD_HEADER.PARTICIPANT_DOMAIN_ID,"DDS_TEST_PUB", sizeof("DDS_TEST_PUB"));
-		pPacket.PDD_HEADER.PARTICIPANT_DOMAIN_SIZE = sizeof(pPacket.PDD_HEADER.PARTICIPANT_DOMAIN_ID);
-		pPacket.PDD_HEADER.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	datagram.sort(pairCompare);
 
-		PublicationList->getAllModifiedData(pPacket.PDD_DATA);
-		sendList = SubscriptionList->getAllAddressList();
+	list < pair<IN_ADDR, PDD_DATA> >::iterator it;
+	for (it = datagram.begin(); it != datagram.end(); ++it) {
+		strcpy(to, inet_ntoa((*it).first));
+		printf("[From : %s\tTo : %s] %s\t%s\t%s\t%s\n",(*it).second.PARTICIPANT_IP, to, (*it).second.PARTICIPANT_DOMAIN_ID, (*it).second.PARTICIPANT_TOPIC, (*it).second.PARTICIPANT_DATA, (*it).second.PARTICIPANT_NODE_TYPE == NODE_TYPE_PUB ? "PUB" : "SUB");
 	}
 
-	else if(SubscriptionList->isTableModified() && type == NODE_TYPE_SUB){
-		//구독자 변경 리스트 조사, 전파 당할 대상은 SUB
-		pPacket.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA = SubscriptionList->getAllModifiedData(pPacket.PDD_DATA);
-		memcpy(pPacket.PDD_HEADER.PARTICIPANT_DOMAIN_ID, "DDS_TEST_SUB", sizeof("DDS_TEST_PUB"));
-		pPacket.PDD_HEADER.PARTICIPANT_DOMAIN_SIZE = sizeof(pPacket.PDD_HEADER.PARTICIPANT_DOMAIN_ID);
-		pPacket.PDD_HEADER.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
-
-		SubscriptionList->getAllModifiedData(pPacket.PDD_DATA);
-		sendList = PublicationList->getAllAddressList();
-	}
-
-	memcpy(PN, (const char *)&pPacket, sizeof(pPacket));
-	*/
-	return sendList;
+	return datagram;
 }

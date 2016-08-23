@@ -108,10 +108,17 @@ bool	TerminalTable::addEntryToParticipant(T_ENTRY entry, TOPIC_ENTRY * topicNode
 		if (currentP->TD_PARTICIPANT_IP.S_un.S_addr == entry.TD_PARTICIPANT_IP.S_un.S_addr) {
 			if (memcmp(currentP->TD_DATA, entry.TD_DATA, MAX_DATA_SIZE) == 0) {
 				isChanged = false;
+				break;
 			}
 			else {
 				memcpy(currentP->TD_DATA, entry.TD_DATA, MAX_DATA_SIZE);
 				currentP->TD_CHANGE_FLAG = true;
+
+				if (entry.TD_PUBSUBTYPE == NODE_TYPE_PUB)
+					topicNode->TD_CHANGE_FLAG_OF_PUB = true;
+				else
+					topicNode->TD_CHANGE_FLAG_OF_SUB = true;
+
 				break;
 			}
 		}

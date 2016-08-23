@@ -48,9 +48,11 @@ void TCPSocket::ResetTCPSocket() {
 }
 
 void TCPSocket::participantDataDistribute() {
-	SOCKADDR_IN		tempAddr;
-	vector<IN_ADDR> sendList;
-	int				counter;
+	SOCKADDR_IN								tempAddr;
+	list<pair<IN_ADDR, PDD_DATA>>			sendList;
+	list<pair<IN_ADDR, PDD_DATA>>::iterator it;
+	int										counter;
+	char									compareAddress[ADDRESS_SIZE];
 
 	PPDD_NODE PDatagram		= (PPDD_NODE)malloc(sizeof(_PDD_NODE));
 	SOCKET ClientSocket		= CreateSocket();
@@ -61,53 +63,58 @@ void TCPSocket::participantDataDistribute() {
 	//Socket »ý¼º ÈÄ Send
 	while (true) {
 		Sleep(10);
-		/*
+		counter = 0;
 		if (this->distributor->checkModifyTableEntry()) {
-			sendList = this->distributor->getParticipantData(PDatagram, NODE_TYPE_PUB);
-			if (PDatagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA != 0) {
-				for (counter = 0; counter < sendList.size(); counter++) {
+			sendList = this->distributor->getParticipantData();
+
+			for (it = sendList.begin(); it != sendList.end(); ++it) {
+				if (it == sendList.begin()) {
+					strcpy(compareAddress, inet_ntoa((*it).first));
+				}
+
+				if (strcmp(compareAddress, inet_ntoa((*it).first)) == 0) {
+					PDatagram->PDD_DATA[counter] = (*it).second;
+					PDatagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA = counter + 1;
+					counter++;
+				}
+				else {
 					ClientSocket = CreateSocket();
 
-					Sleep(100);
+					tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa((*it).first));
 
-					tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(sendList[counter]));
-
-					printf("[PUB]Sending to %s..... \n", inet_ntoa(sendList[counter]));
+					printf("Sending to %s..... \n", inet_ntoa((*it).first));
 
 					if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
-						ErrorHandling("pub connect() error!");
+						ErrorHandling("connect() error!");
 
 					send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
 
 					closesocket(ClientSocket);
 
-					printf("[PUB]Complete ..... \n");
+					printf("Complete ..... \n");
+
+					memset(PDatagram->PDD_DATA, 0, sizeof(PDD_DATA) * MAX_PDD_NUMBER);
+					PDatagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA = 0;
+					counter = 0;
 				}
 			}
 
-			sendList = this->distributor->getParticipantData(PDatagram, NODE_TYPE_SUB);
-			if (PDatagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA != 0 ) {
-				for (counter = 0; counter < sendList.size(); counter++) {
-					ClientSocket = CreateSocket();
 
-					tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(sendList[counter]));
-					
-					printf("[SUB]Sending to %s..... \n", inet_ntoa(sendList[counter]));
+			ClientSocket = CreateSocket();
 
-					if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
-						ErrorHandling("sub connect() error!");
+			tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(sendList.back().first));
 
-					send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
+			printf("Sending to %s..... \n", inet_ntoa(sendList.back().first));
 
-					closesocket(ClientSocket);
+			if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+				ErrorHandling("connect() error!");
 
-					printf("[SUB]Complete ..... \n");
-				}
-			}
-		}
-		*/
-		if (this->distributor->checkModifyTableEntry()) {
-			this->distributor->getParticipantData(PDatagram, NODE_TYPE_PUB);
+			send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
+
+			closesocket(ClientSocket);
+
+			printf("Complete ..... \n");
+
 		}
 	}
 }
@@ -473,13 +480,15 @@ void TCPSocket::inputDummyData() {
 	dummy.TD_PUBSUBTYPE = NODE_TYPE_PUB;
 	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
 	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	//dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.5");
 	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
-
+	
 	memcpy(dummy2.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
 	memcpy(dummy2.TD_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
 	dummy2.TD_PUBSUBTYPE = NODE_TYPE_PUB;
 	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
 	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	//dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.6");
 	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy3.TD_DOMAIN, "DDS_2", sizeof("DDS_1"));
@@ -487,6 +496,7 @@ void TCPSocket::inputDummyData() {
 	dummy3.TD_PUBSUBTYPE = NODE_TYPE_PUB;
 	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
 	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	//dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.7");
 	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	this->participantList->addEntry(dummy);
@@ -506,6 +516,7 @@ void TCPSocket::inputDummyData() {
 	dummy.TD_PUBSUBTYPE = NODE_TYPE_PUB;
 	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
 	memcpy(dummy.TD_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	//dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.7");
 	dummy.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy2.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
@@ -513,6 +524,7 @@ void TCPSocket::inputDummyData() {
 	dummy2.TD_PUBSUBTYPE = NODE_TYPE_PUB;
 	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
 	memcpy(dummy2.TD_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	//dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.6");
 	dummy2.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	memcpy(dummy3.TD_DOMAIN, "DDS_3", sizeof("DDS_1"));
@@ -520,6 +532,7 @@ void TCPSocket::inputDummyData() {
 	dummy3.TD_PUBSUBTYPE = NODE_TYPE_PUB;
 	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
 	memcpy(dummy3.TD_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	//dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.5");
 	dummy3.TD_PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.1");
 
 	this->participantList->addEntry(dummy);
