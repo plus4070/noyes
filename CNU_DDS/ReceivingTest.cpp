@@ -13,21 +13,21 @@ using namespace std;
 namespace CNU_DDS
 {
 	typedef struct _PDD_HEADER {
-		int					PARTICIPANT_NUMBER_OF_DATA;
-
+		int					MESSAGE_TYPE;
+		char				PARTICIPANT_TOPIC[MAX_CHAR];
+		char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
+		int					PARTICIPANT_NODE_TYPE;
 	} PDD_HEADER, *PPDD_HEADER;
 
 	typedef struct _PDD_DATA {
-		int					PARTICIPANT_NODE_TYPE;
-		char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
-		char				PARTICIPANT_TOPIC[MAX_CHAR];
 		char				PARTICIPANT_IP[ADDRESS_SIZE];
+		int					PARTICIPANT_PORT;
 		char 				PARTICIPANT_DATA[MAX_DATA_SIZE];
 	} PDD_DATA, *PPDD_DATA;
 
 	typedef struct _PDD_NODE {
 		PDD_HEADER			PDD_HEADER;
-		PDD_DATA 			PDD_DATA[MAX_PDD_NUMBER];
+		PDD_DATA 			PDD_DATA;
 	} PDD_NODE, *PPDD_NODE;
 
 	void ErrorHandling(char *message)
@@ -218,17 +218,15 @@ namespace CNU_DDS
 
 						if (strLen != -1) {
 							// Ãâ·Â
-							cout << "======================================================================" << endl;
-							cout << "NUM OF DATA		:	"<< receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
-							for (int k = 0 ; k < receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA ; k++){
 								cout << "**********************************************************************" << endl;
-								cout << "NODE TYPE		:	"<< receiveData.PDD_DATA[k].PARTICIPANT_NODE_TYPE << endl;
-								cout << "Domain ID		:	"<< receiveData.PDD_DATA[k].PARTICIPANT_DOMAIN_ID << endl;
-								cout << "TOPIC			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_TOPIC << endl;
-								cout << "TOPIC			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_IP << endl;
-								cout << "DATA			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_DATA << endl;
-							}
-							cout << "======================================================================" << endl;
+								cout << "MESSAGE TYPE	:	"<< receiveData.PDD_HEADER.MESSAGE_TYPE << endl;
+								cout << "TOPIC			:	"<< receiveData.PDD_HEADER.PARTICIPANT_TOPIC << endl;
+								cout << "Domain ID		:	"<< receiveData.PDD_HEADER.PARTICIPANT_DOMAIN_ID << endl;
+								cout << "NODE TYPE		:	"<< receiveData.PDD_HEADER.PARTICIPANT_NODE_TYPE << endl;
+								cout << "TOPIC			:	"<< receiveData.PDD_DATA.PARTICIPANT_IP << endl;
+								cout << "TOPIC			:	"<< receiveData.PDD_DATA.PARTICIPANT_PORT << endl;
+								cout << "DATA			:	"<< receiveData.PDD_DATA.PARTICIPANT_DATA << endl;
+								cout << "**********************************************************************" << endl;
 						}
 
 						//////////////////////////////////////////////////////////////////////////////////////////////////
