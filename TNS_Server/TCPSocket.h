@@ -54,5 +54,6 @@ public:
 	void ResetTCPSocket();
 	void Response();
 	void SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData);
+	void initialize();
 };
 

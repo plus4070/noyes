@@ -25,8 +25,8 @@ bool	TopicNameTable::isEntryExist(TN_ENTRY entry){
 	else //만약 한개라도 있으면 탐색 시작, 다음 Node는 있을수도 있고 없을 수 도 있음
 	{
 		while (currentNode != NULL) {
-			if (memcmp(currentNode->key.TN_TOKEN, entry.TN_TOKEN, sizeof(entry.TN_TOKEN)) &&
-				memcmp(currentNode->key.TN_TOPIC, entry.TN_TOPIC, sizeof(entry.TN_TOPIC)) &&
+			if (strcmp(currentNode->key.TN_TOKEN, entry.TN_TOKEN) == 0 &&
+				strcmp(currentNode->key.TN_TOPIC, entry.TN_TOPIC) == 0 &&
 				currentNode->key.TN_LEVEL == entry.TN_LEVEL) {
 				return true;
 			}
@@ -76,9 +76,9 @@ bool	TopicNameTable::getEntry(TN_ENTRY *p_entry){
 	else {
 		PTN_NODE currentNode = TN_head;
 		while (currentNode != NULL) {
-			if (memcmp(currentNode->key.TN_TOKEN, p_entry->TN_TOKEN, sizeof(p_entry->TN_TOKEN)) &&
-				memcmp(currentNode->key.TN_TOPIC, p_entry->TN_TOPIC, sizeof(p_entry->TN_TOPIC)) &&
-				currentNode->key.TN_LEVEL == p_entry->TN_LEVEL) {
+			if (strcmp(currentNode->key.TN_TOKEN, p_entry->TN_TOKEN) == 0 &&
+				strcmp(currentNode->key.TN_TOPIC, p_entry->TN_TOPIC) == 0 &&
+				currentNode->key.TN_LEVEL == p_entry->TN_LEVEL){
 				memcpy(p_entry->TN_NEXTZONE, currentNode->key.TN_NEXTZONE, ADDRESS_SIZE);
 				return true;
 			}

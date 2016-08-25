@@ -14,7 +14,7 @@ TCPSocket::TCPSocket()
 int TCPSocket::StartServer()
 {
 	//Test Dummy Insert
-	inputDummyEntryToTNTable();
+	
 
 	// 윈속 초기화 (성공시 0, 실패시 에러 코드리턴)
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -23,7 +23,10 @@ int TCPSocket::StartServer()
 
 	HANDLE recvThread = (HANDLE)_beginthreadex(NULL, 0, receiving, (LPVOID)this, 0, NULL);
 	HANDLE sendThread = (HANDLE)_beginthreadex(NULL, 0, sending, (LPVOID)this, 0, NULL);
-	
+
+	this->initialize();
+	TNTable->testShowAll();
+
 	while (1) {}
 
 	CloseHandle(recvThread);
@@ -32,6 +35,54 @@ int TCPSocket::StartServer()
 	return 0;
 }
 
+void TCPSocket::initialize() {
+	int	test_type;
+	TN_ENTRY TE;
+
+	printf("[ INITIALIZE TNS SERVER ]\n\n");
+
+	printf("***** Select inital type *****\n");
+	printf("[1] Create Transmission Topic\n");
+	printf("[2] Input  Dummy        Topic\n");
+	printf("[others] Exit\n");
+	printf("******************************\n");
+
+	printf("input>");
+	scanf("%d", &test_type);
+	
+	if(test_type == 2)
+		inputDummyEntryToTNTable();
+
+	while (test_type == 1) {
+		printf("[ INPUT TOPIC NAME SPACE ENTRY ]\n\n");
+		printf("Input Topic >");
+		scanf("%s", &TE.TN_TOPIC);
+
+		printf("Input Token >");
+		scanf("%s", &TE.TN_TOKEN);
+
+		printf("Input Level of Token >");
+		scanf("%d", &TE.TN_LEVEL);
+
+		printf("Input Next Zone >");
+		scanf("%s", &TE.TN_NEXTZONE);
+
+		TNTable->addEntry(TE);
+		TNTable->testShowAll();
+
+		fflush(stdin);
+
+		printf("***** Select inital type *****\n");
+		printf("[1] Create Transmission Topic\n");
+		printf("[others] Exit\n");
+		printf("******************************\n");
+
+		printf("input>");
+		scanf("%d", &test_type);
+	}
+
+	printf("[ Complete Inital TNS SERVER ]\n\n");
+}
 
 void TCPSocket::ResetTCPSocket() {
 	this->sockTotal = 0;
@@ -105,7 +156,7 @@ void TCPSocket::inputDummyEntryToTNTable() {
 	memcpy(TE.TN_TOKEN, "DDDD", sizeof("DDDD"));
 	TNTable->addEntry(TE);
 	TE.TN_LEVEL = 5;
-	memcpy(TE.TN_TOKEN, "EEEEE", sizeof("EEEEE"));
+	memcpy(TE.TN_TOKEN, "EEEEEE", sizeof("EEEEEE"));
 	memcpy(TE.TN_NEXTZONE, "127.0.0.1", ADDRESS_SIZE);
 	//memcpy(TE.TN_NEXTZONE, "192.168.0.22", ADDRESS_SIZE);
 	TNTable->addEntry(TE);
@@ -119,7 +170,7 @@ void TCPSocket::Response() {
 		PR_NODE PN = RTable->getLastEntry();
 		TNSN_ENTRY entry = PN->key.REQUEST_DATA;
 
-		if (entry.TNSN_DATATYPE == MESSAGE_TYPE_REQUEST) {
+		if (entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_REQUEST) {
 			//수신 메시지 출력
 			//cout << "Request MSG" << endl;
 			//cout << "Request Topic :" << entry.TNSN_TOPIC << endl;
@@ -132,10 +183,10 @@ void TCPSocket::Response() {
 			if (TNTable->isEntryExist(TE)) {
 				TNTable->getEntry(&TE);
 				memcpy(entry.TNSN_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
-				entry.TNSN_DATATYPE = MESSAGE_TYPE_RESPONSE;
+				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_RESPONSE;
 			}
 			else {
-				entry.TNSN_DATATYPE = MESSAGE_TYPE_NOTEXIST;
+				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_NOTEXIST;
 			}
 
 			cout << "Response TOKEN :" << TE.TN_TOKEN << "/" << TE.TN_NEXTZONE << endl;
@@ -167,13 +218,13 @@ static UINT WINAPI sending(LPVOID p) {
 			PR_NODE PN = tcpSocket->RTable->getLastEntry();
 			TNSN_ENTRY entry = PN->key.REQUEST_DATA;
 
-			if (entry.TNSN_DATATYPE == MESSAGE_TYPE_REQUEST) {
+			if (entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_REQUEST) {
 				//수신 메시지 출력
 				cout << "Request MSG" << endl;
 				cout << "Request Topic :" << entry.TNSN_TOPIC << endl;
 				cout << "Request Token :" << entry.TNSN_TOKEN << endl;
 				cout << "Request TokenLevel :" << entry.TNSN_TOKENLEVEL << endl;
-				cout << "Request TYPE :" << entry.TNSN_DATATYPE << endl;
+				cout << "Request TYPE :" << entry.TNSN_MESSAGETYPE << endl;
 
 				TE.TN_LEVEL = entry.TNSN_TOKENLEVEL;
 				memcpy(TE.TN_TOPIC, entry.TNSN_TOPIC, sizeof(entry.TNSN_TOPIC));
@@ -182,11 +233,13 @@ static UINT WINAPI sending(LPVOID p) {
 				if (tcpSocket->TNTable->isEntryExist(TE)) {
 					tcpSocket->TNTable->getEntry(&TE);
 					memcpy(entry.TNSN_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
-					entry.TNSN_DATATYPE = MESSAGE_TYPE_RESPONSE;
+					entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_RESPONSE;
+					printf("%s", entry.TNSN_DATA);
+
 					cout << "RESPONSE" << endl;
 				}
 				else {
-					entry.TNSN_DATATYPE = MESSAGE_TYPE_NOTEXIST;
+					entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_NOTEXIST;
 					cout << "NOT EXIST" << endl;
 				}
 

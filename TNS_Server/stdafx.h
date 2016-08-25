@@ -14,19 +14,24 @@
 #define STATE_RESPONSE	2
 #define	STATE_END		3
 
+#define MESSAGE_TYPE_REQUEST	1
+#define MESSAGE_TYPE_RESPONSE	2
+#define MESSAGE_TYPE_NOTEXIST	3
 
-#define MESSAGE_TYPE_SAVE		1
-#define MESSAGE_TYPE_REQUEST	2
-#define MESSAGE_TYPE_RESPONSE	3
-#define MESSAGE_TYPE_NOTEXIST	4
-#define MESSAGE_TYPE_SAVEDONE	5
+#define MESSAGE_TYPE_SAVE		10
+#define MESSAGE_TYPE_REMOVE		11
+#define MESSAGE_TYPE_MODIFY		12
+
+#define MESSAGE_TYPE_SAVEDONE	20
+#define MESSAGE_TYPE_REMOVEDONE	21
+#define MESSAGE_TYPE_MODIFYDONE	22
+
 #define NODE_TYPE_PUB			100
 #define NODE_TYPE_SUB			200
+
 #define BUFSIZE					100		// 받아올 데이터 최대 크기
-#define FES_PORT				3000		// 포트번호 할당
-#define TNS_PORT				3001		// 포트번호 할당
-
-
+#define FES_PORT				3000	// 포트번호 할당
+#define TNS_PORT				3001	// 포트번호 할당
 
 
 // TCPSocket
@@ -37,13 +42,11 @@ typedef struct _TNSN_ENTRY {
 	char			TNSN_TOKEN[MAX_CHAR];
 	int				TNSN_TOKENLEVEL;
 	int				TNSN_NODETYPE;
-	int				TNSN_DATATYPE;
+	int				TNSN_MESSAGETYPE;
 	char			TNSN_PARTICIPANT_ADDR[ADDRESS_SIZE];
+	int				TNSN_PARTICIPANT_PORT;
 	char			TNSN_DATA[MAX_DATA_SIZE];
 } TNSN_ENTRY, *PTNSN_ENTRY;
-
-
-
 
 // TopicNameTable
 typedef struct _TN_ENTRY {
