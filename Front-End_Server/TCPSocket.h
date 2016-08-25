@@ -46,4 +46,5 @@ public:
 	void ResetTCPSocket();
 	void SaveRequests(SOCKET rSocket, TNSN_ENTRY tnsData);
 	void inputDummy();
+	void initialize();
 };

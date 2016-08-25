@@ -18,7 +18,7 @@ int TCPSocket::StartServer()
 		ErrorHandling("WSAStartup() error!");
 	}
 
-	inputDummy();
+	initialize();
 
 	puts("Front-End Server Start");
 	this->TNSPTable->testShowAll();
@@ -42,7 +42,83 @@ void TCPSocket::ResetTCPSocket() {
 }
 
 void TCPSocket::inputDummy() {
-	this->TNSPTable->addEntry("Q/WW/EEE/RRRR/TTTTTT", "DDS_3", "127.0.0.1", "127.0.0.9", "DDS_TEST_DATA", NULL, NODE_TYPE_PUB);
+	//this->TNSPTable->addEntry("Q/WW/EEE/RRRR/TTTTTT", "DDS_3",
+	//	"127.0.0.1", "127.0.0.10", 1000, "DDS_TEST_DATA3", NULL, NODE_TYPE_PUB, MESSAGE_TYPE_SAVE);
+	
+	this->TNSPTable->addEntry("A/BB/CCC/DDDD/EEEEEE", "DDS_1",
+			"127.0.0.1", "127.0.0.20", 70, "CCCCCCC", NULL, NODE_TYPE_PUB, MESSAGE_TYPE_SAVE);
+}
+
+
+void TCPSocket::initialize() {
+	int	test_type;
+	char topic[MAX_CHAR];
+	char domain[MAX_CHAR];
+	char nextzone[ADDRESS_SIZE];
+	char participantip[ADDRESS_SIZE];
+	int participantport;
+	char data[MAX_DATA_SIZE];
+	int pubsub;
+	int messageType;
+
+	printf("[ INITIALIZE Front-End SERVER ]\n\n");
+
+	printf("***** Select inital type *****\n");
+	printf("[1] Create Transmission Topic\n");
+	printf("[2] Input  Dummy        Topic\n");
+	printf("[3] Run	   Front-End	Server\n");
+	printf("[others] Exit\n");
+	printf("******************************\n");
+
+	printf("input>");
+	scanf("%d", &test_type);
+
+	if (test_type == 2)
+		inputDummy();
+	else if (test_type == 3)
+		return;
+
+	while (test_type == 1) {
+
+		printf("input Topic>");
+		scanf("%s", topic);
+
+		printf("input Domain>");
+		scanf("%s", domain);
+
+		printf("input Next Zone IP>");
+		scanf("%s", nextzone);
+
+		printf("input Participant IP>");
+		scanf("%s", participantip);
+
+		printf("input Participant Port>");
+		scanf("%d", &participantport);
+
+		printf("input Sample Data>");
+		scanf("%s", data);
+
+		printf("input Pub/Sub Type (100 : PUB / 200 : SUB)>");
+		scanf("%d", &pubsub);
+
+		printf("input Message Type (10 : SAVE / 11 : REMOVE / 12 : MODIFY)>");
+		scanf("%d", &messageType);
+
+		this->TNSPTable->addEntry(topic, domain,
+			nextzone, participantip, participantport, data, NULL, pubsub, messageType);
+
+		printf("***** Select inital type *****\n");
+		printf("[1] Create Transmission Topic\n");
+		printf("[2] Input  Dummy        Topic\n");
+		printf("[3] Run	   Front-End	Server\n");
+		printf("[others] Exit\n");
+		printf("******************************\n");
+
+		printf("input>");
+		scanf("%d", &test_type);
+	}
+
+	printf("[ Complete Inital Front-End SERVER ]\n\n");
 }
 
 
@@ -130,12 +206,12 @@ static UINT WINAPI storing(LPVOID p) {
 			
 			if (PTNSP->key.TN_SPACE_TOTAL_LEVEL < PTNSP->key.TN_SPACE_CURRENT_LEVEL) {
 				tempAddr.sin_port = htons(TERMINAL_PORT);
-				TNSNDatagram.TNSN_DATATYPE = MESSAGE_TYPE_SAVE;
+				TNSNDatagram.TNSN_MESSAGETYPE = PTNSP->key.TN_SPACE_MESSAGETYPE;
 				strcpy(TNSNDatagram.TNSN_DATA, PTNSP->key.TN_SPACE_DATA);
 			}
 			else {
 				tempAddr.sin_port = htons(TNS_PORT);
-				TNSNDatagram.TNSN_DATATYPE = MESSAGE_TYPE_REQUEST;
+				TNSNDatagram.TNSN_MESSAGETYPE = MESSAGE_TYPE_REQUEST;
 			}
 
 			if (PTNSP->key.TN_SPACE_NODETYPE == NODE_TYPE_PUB)
@@ -149,8 +225,9 @@ static UINT WINAPI storing(LPVOID p) {
 			memcpy(TNSNDatagram.TNSN_TOKEN, PTNSP->key.TN_SPACE_TOKEN, sizeof(PTNSP->key.TN_SPACE_TOKEN));
 			memcpy(TNSNDatagram.TNSN_PARTICIPANT_ADDR, PTNSP->key.TN_SPACE_PARTICIPANT_ADDR, ADDRESS_SIZE);
 			TNSNDatagram.TNSN_TOKENLEVEL = PTNSP->key.TN_SPACE_CURRENT_LEVEL;
+			TNSNDatagram.TNSN_PARTICIPANT_PORT = PTNSP->key.TN_SPACE_PARTICIPANT_PORT;
 
-			cout << "SEND TYPE :" << TNSNDatagram.TNSN_DATATYPE << endl;
+			cout << "SEND TYPE :" << TNSNDatagram.TNSN_MESSAGETYPE << endl;
 			cout << "====================" << endl;
 
 			if (connect(PTNSP->key.TN_SPACE_CURRENT_SOCKET, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
@@ -168,13 +245,13 @@ static UINT WINAPI storing(LPVOID p) {
 			TNSN_ENTRY entry = PRN->key.REQUEST_DATA;
 
 			//T_ENTRY TD;
-			if (entry.TNSN_DATATYPE == MESSAGE_TYPE_RESPONSE) {
+			if (entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_RESPONSE) {
 				cout << "====================" << endl;
 				cout << "RECEIVE MSG" << endl;
 				cout << "RECEIVE Topic :" << entry.TNSN_TOPIC << endl;
 				cout << "RECEIVE Token :" << entry.TNSN_TOKEN << endl;
 				cout << "RECEIVE TokenLevel :" << entry.TNSN_TOKENLEVEL << endl;
-				cout << "RECEIVE TYPE :" << entry.TNSN_DATATYPE << endl;
+				cout << "RECEIVE TYPE :" << entry.TNSN_MESSAGETYPE << endl;
 				cout << "RECEIVE DATA :" << entry.TNSN_DATA << endl;
 				cout << "====================" << endl;
 
@@ -183,7 +260,7 @@ static UINT WINAPI storing(LPVOID p) {
 
 				//closesocket(hSocket);
 			}
-			else if (entry.TNSN_DATATYPE == MESSAGE_TYPE_SAVEDONE) {
+			else if (entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_SAVEDONE) {
 				puts("SAVE Complete");
 			}
 			else {
@@ -474,7 +551,7 @@ int TCPSocket::StartServer()
 	for (int i = 0; i < 1; i++) {
 		//cout << x.at(i) << endl;
 		//cout << x.at(i).c_str() << endl;
-		TNSNDatagram.TNSN_DATATYPE = MESSAGE_TYPE_REQUEST;
+		TNSNDatagram.TNSN_MESSAGETYPE = MESSAGE_TYPE_REQUEST;
 		TNSNDatagram.TNSN_ID = 700;
 		TNSNDatagram.TNSN_NODETYPE = NODE_TYPE_PUB;
 		memcpy(TNSNDatagram.TNSN_TOPIC, PE->key.topic, sizeof(PE->key.topic));
@@ -484,7 +561,7 @@ int TCPSocket::StartServer()
 		cout << "Send MSG" << endl;
 		cout << "Send Topic :" << TNSNDatagram.TNSN_TOPIC << endl;
 		cout << "Send Token :" << TNSNDatagram.TNSN_TOKEN << endl;
-		cout << "Send TYPE :" << TNSNDatagram.TNSN_DATATYPE << endl;
+		cout << "Send TYPE :" << TNSNDatagram.TNSN_MESSAGETYPE << endl;
 
 		send(hSocket, (char*)&TNSNDatagram, sizeof(TNSNDatagram), 0);
 	}
@@ -497,13 +574,13 @@ int TCPSocket::StartServer()
 			ErrorHandling("read() error!");
 
 		//message[strLen] = 0;
-		printf("\nMessage from server : %d \n", TNSNDatagram.TNSN_DATATYPE);
+		printf("\nMessage from server : %d \n", TNSNDatagram.TNSN_MESSAGETYPE);
 		printf("Message from server : %s \n", TNSNDatagram.TNSN_TOKEN);
 		printf("Message from server : %s \n", TNSNDatagram.TNSN_DATA);
 
-		if (TNSNDatagram.TNSN_DATATYPE == MESSAGE_TYPE_SAVEDONE)
+		if (TNSNDatagram.TNSN_MESSAGETYPE == MESSAGE_TYPE_SAVEDONE)
 			break;
-		else if (TNSNDatagram.TNSN_DATATYPE == MESSAGE_TYPE_RESPONSE) {
+		else if (TNSNDatagram.TNSN_MESSAGETYPE == MESSAGE_TYPE_RESPONSE) {
 			{
 				closesocket(hSocket);
 				PE->key.currentLevel++;
@@ -526,11 +603,11 @@ int TCPSocket::StartServer()
 			}
 
 			if (PE->key.currentLevel > PE->key.totalLevel) {
-				TNSNDatagram.TNSN_DATATYPE = MESSAGE_TYPE_SAVE;
+				TNSNDatagram.TNSN_MESSAGETYPE = MESSAGE_TYPE_SAVE;
 				tempAddr.sin_port = htons(TERMINAL_PORT);
 			}
 			else {
-				TNSNDatagram.TNSN_DATATYPE = MESSAGE_TYPE_REQUEST;
+				TNSNDatagram.TNSN_MESSAGETYPE = MESSAGE_TYPE_REQUEST;
 				tempAddr.sin_port = htons(TNS_PORT);
 			}
 
@@ -552,7 +629,7 @@ int TCPSocket::StartServer()
 				cout << "Send MSG" << endl;
 				cout << "Send Topic :" << TNSNDatagram.TNSN_TOPIC << endl;
 				cout << "Send Token :" << TNSNDatagram.TNSN_TOKEN << endl;
-				cout << "Send TYPE :" << TNSNDatagram.TNSN_DATATYPE << endl;
+				cout << "Send TYPE :" << TNSNDatagram.TNSN_MESSAGETYPE << endl;
 				cout << "current Level :" << PE->key.currentLevel << endl;
 
 				send(hSocket, (char*)&TNSNDatagram, sizeof(TNSNDatagram), 0);
