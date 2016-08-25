@@ -87,8 +87,6 @@ bool	TerminalTable::addEntryToTopic(T_ENTRY entry, DOMAIN_ENTRY * domainNode) {
 		addEntryToParticipant(entry, newTopic);
 		isChanged = true;
 	}
-
-	printf("return %d\n", isChanged);
 	return isChanged;
 }
 
@@ -142,7 +140,6 @@ bool	TerminalTable::addEntryToParticipant(T_ENTRY entry, TOPIC_ENTRY * topicNode
 			topicNode->TD_CHANGE_FLAG_OF_SUB = true;
 		}
 	}
-	printf("return %d\n", isChanged);
 	return isChanged;
 }
 
@@ -173,7 +170,6 @@ bool TerminalTable::addTopic2(T_ENTRY entry) {
 		currNode->next = newNode;
 	}
 
-	newNode->key.TD_CHANGE_FLAG = true;
 	this->isModifyEntryExist = true;
 	return true;
 }
@@ -184,25 +180,6 @@ void TerminalTable::resetModifyFlag() {
 
 bool TerminalTable::isTableModified() {
 	return this->isModifyEntryExist;
-}
-
-int		TerminalTable::getAllModifiedData(PDD_DATA dataArray[MAX_PDD_NUMBER]){
-	int numOfData = 0;
-	
-	PT_NODE currNode = t_head;
-	while (currNode != NULL) {
-		if (numOfData == MAX_PDD_NUMBER)
-			break;
-
-		if (currNode->key.TD_CHANGE_FLAG == true) {
-			memcpy(dataArray[numOfData].PARTICIPANT_DATA, currNode->key.TD_DATA, MAX_DATA_SIZE);
-			memcpy(dataArray[numOfData].PARTICIPANT_TOPIC, currNode->key.TD_TOPIC, MAX_CHAR);
-			currNode->key.TD_CHANGE_FLAG = false;
-			numOfData++;
-		}
-		currNode = currNode->next;
-	}
-	return numOfData;
 }
 
 vector<IN_ADDR> TerminalTable::getAllAddressList() {

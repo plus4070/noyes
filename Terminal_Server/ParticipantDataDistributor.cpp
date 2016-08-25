@@ -24,7 +24,7 @@ bool		ParticipantDataDistributor::checkModifyTableEntry() {
 static bool pairCompare(const pair<IN_ADDR, PDD_DATA> &firstElem, const pair<IN_ADDR, PDD_DATA> &secondElem) {
 	return firstElem.first.S_un.S_addr < secondElem.first.S_un.S_addr;
 }
-
+/*
 list<pair<IN_ADDR, PDD_DATA>>	ParticipantDataDistributor::getParticipantData() {
 	//type, 수정된 리스트 Type 조사, 조사한 리스트들의 목록을 다른 타입의 노드들에게 전송하여 저장시킨다.
 	PDD_NODE pPacket;
@@ -111,3 +111,4 @@ list<pair<IN_ADDR, PDD_DATA>>	ParticipantDataDistributor::getParticipantData() {
 
 	return datagram;
 }
+*/

@@ -4,6 +4,7 @@
 #include "ParticipantDataDistributor.h"
 #include "TerminalTable.h"
 #include "RequestTable.h"
+#include "DBManager.h"
 
 using namespace std;
 
@@ -18,6 +19,7 @@ public:
 	RequestTable *				RTable;
 	TerminalTable *				participantList;
 	ParticipantDataDistributor*	distributor;
+	DBManager * DB;
 
 private:
 	// 변수 선언	
@@ -49,4 +51,5 @@ public:
 	void SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData);
 	void participantDataDistribute();
 	void inputDummyData();
+	void inputDummyDataToDB();
 };
