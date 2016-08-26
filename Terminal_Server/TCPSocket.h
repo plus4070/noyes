@@ -52,4 +52,6 @@ public:
 	void participantDataDistribute();
 	void inputDummyData();
 	void inputDummyDataToDB();
+
+	void initalize();
 };

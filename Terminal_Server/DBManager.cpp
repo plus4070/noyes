@@ -4,12 +4,6 @@
 DBManager::DBManager()
 {
 	resetManager();
-	
-	if (!DBConnection()) {
-		printf("Connection Error!\n");
-	}
-	//outputTest();
-	//modifyTest();
 }
 
 
@@ -20,16 +14,177 @@ DBManager::~DBManager()
 
 
 void DBManager::resetManager() {
+	//initDBInfo();
 
+	if (!DBConnection()) {
+		printf("Connection Error!\n");
+	}
+	else {
+		clearTopicTable();
+		defineTopic();
+	}
 }
+
+void DBManager::clearTopicTable() {
+	char query[200];
+
+	sprintf(query, "SELECT * FROM %s", this->table);
+
+	state = executeQuery(query);
+
+	if (state != -1) {
+		while ((sql_row = mysql_fetch_row(sql_result)) != NULL)
+		{
+			removeParticipantTable((char *)sql_row[0]);
+			sprintf(query, "DELETE FROM %s WHERE topic='%s'", this->table, sql_row[0]);
+			mysql_query(this->connection, (const char *)query);
+		}
+	}
+}
+
+void DBManager::InputTopic(char * topic) {
+	//printf("INPUT PARTICIPANT TABLE : %s\n", topic);
+
+	char query[200];
+
+	sprintf(query, "INSERT INTO %s VALUES ( '%s' )", this->table, topic);
+
+	state = executeQuery(query);
+
+	if (state != -1) {
+		makeParticipantTable(topic);
+	}
+}
+
+bool DBManager::isTopicExist(char * topic) {
+	char query[200];
+
+	sprintf(query, "SELECT * FROM %s", this->table);
+
+	state = executeQuery(query);
+
+	if (state != -1) {
+		while ((sql_row = mysql_fetch_row(sql_result)) != NULL)
+		{
+			if (strcmp(topic, (char *)sql_row[0]) == 0)
+				return true;
+		}
+	}
+	return false;
+}
+
+void DBManager::makeParticipantTable(char * topic) {
+	//printf("MAKE PARTICIPANT TABLE : %s\n", topic);
+	char query[800];
+	sprintf(query, "CREATE TABLE `participanttable_%s` (`Domain` VARCHAR(100) NOT NULL, `Type` INT NOT NULL, `IP` VARCHAR(16) NOT NULL,`Port` INT NOT NULL, `Data` VARCHAR(800) NOT NULL);", topic);
+	//printf(query);
+	mysql_query(this->connection, (const char *)query);
+}
+
+void DBManager::removeParticipantTable(char * topic) {
+	//printf("REMOVE PARTICIPANT TABLE : %s\n", topic);
+	char query[400];
+	sprintf(query, "DROP TABLE `participanttable_%s`;", topic);
+	//printf(query);
+	mysql_query(this->connection, (const char *)query);
+}
+
+
+void DBManager::initDBInfo() {
+	int	test_type;
+
+	printf("***** Select inital type *****\n");
+	printf("[1] Private Database\n");
+	printf("[2] Default \n");
+	printf("[others] Exit\n");
+	printf("******************************\n");
+
+	printf("input>");
+	scanf("%d", &test_type);
+
+	if (test_type == 2) {
+		this->host = (char*)"127.0.0.1";
+		this->user = (char*)"terminal";
+		this->pw = (char*)"tns2458";
+		this->db = (char*)"ddsparticipanttable";
+	}
+	else {
+		char host[ADDRESS_SIZE];
+		char user[MAX_CHAR];
+		char pw[MAX_CHAR];
+		char db[MAX_CHAR];
+		printf("============ Input Database Info ============\n");
+
+		printf("Input Database IP >");
+		scanf("%s", host);
+
+		printf("Input User ID >");
+		scanf("%s", user);
+
+		printf("Input Password >");
+		scanf("%s", pw);
+
+		printf("Input Database Name >");
+		scanf("%s", db);
+
+		/* 
+		this->host = (char*)host;
+		this->user = (char*)user;
+		this->pw = (char*)pw;
+		this->db = (char*)db;
+		*/
+		
+		//printf("%s\t%s\t%s\t%s\n", host, user, pw, db);
+
+		this->host = host;
+		this->user =user;
+		this->pw = pw;
+		this->db = db;
+
+		//printf("%s\t%s\t%s\t%s\n", this->host, this->user, this->pw, this->db);
+	}
+
+	this->table = TopicTable;
+	fflush(stdin);
+
+	printf("================= Complete ==================\n");
+}
+
+
+void DBManager::defineTopic() {
+	int test_type;
+	char topic[MAX_CHAR];
+	printf("[ INITIALIZE TOPIC SPACE ]\n\n");
+
+	printf("***** Select inital type *****\n");
+	printf("[1] Create Topic\n");
+	printf("[others] Exit\n");
+	printf("******************************\n");
+
+	printf("input>");
+	scanf("%d", &test_type);
+	while (test_type == 1) {
+		printf("Input Topic >");
+		scanf("%s", topic);
+		InputTopic(topic);
+
+		fflush(stdin);
+
+		printf("***** Select inital type *****\n");
+		printf("[1] Create Topic\n");
+		printf("[others] Exit\n");
+		printf("******************************\n");
+
+		printf("input>");
+		scanf("%d", &test_type);
+	}
+}
+
 
 void DBManager::testDB() {
 	puts(mysql_get_client_info());
 }
 
-bool DBManager::checkTableExist() {
-	return false;
-}
 
 bool DBManager::DBConnection() {
 	this->connection = mysql_init(NULL);
@@ -46,7 +201,7 @@ bool DBManager::isEntryExist(T_ENTRY entry) {
 	char    query[200];
 	sprintf(query, "SELECT * FROM %s WHERE Topic='%s' AND Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", this->table, entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT);
 
-	printf("IS ENTRY EXIST :: %s\n", query);
+	//printf("IS ENTRY EXIST :: %s\n", query);
 	state = mysql_query(this->connection, query);
 
 	if (state != 0)
@@ -67,8 +222,9 @@ bool DBManager::isEntryExist(T_ENTRY entry) {
 list<IN_ADDR> DBManager::InsertEntry(T_ENTRY entry) {
 	int		state;
 	char    query[200];
-	sprintf(query, "INSERT INTO %s VALUES ('%s', '%s', %d, '%s', %d, '%s');", this->table, entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT, entry.TD_DATA);
-	printf("INSERT ENTRY :: %s\n", query);
+
+	sprintf(query, "INSERT INTO	`participanttable_%s` VALUES ('%s', %d, '%s', %d, '%s');", entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT, entry.TD_DATA);
+	//printf("INSERT ENTRY :: %s\n", query);
 
 	state = executeQuery(query);
 	
@@ -77,9 +233,9 @@ list<IN_ADDR> DBManager::InsertEntry(T_ENTRY entry) {
 
 list<IN_ADDR> DBManager::deleteEntry(T_ENTRY entry) {
 	char    query[200];
-	sprintf(query, "DELETE FROM %s WHERE Topic='%s' AND Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", this->table, entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT);
+	sprintf(query, "DELETE FROM participanttable_%s WHERE Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT);
 
-	printf("DELETE ENTRY :: %s\n", query);
+	//printf("DELETE ENTRY :: %s\n", query);
 
 	state = executeQuery(query);
 
@@ -88,9 +244,9 @@ list<IN_ADDR> DBManager::deleteEntry(T_ENTRY entry) {
 
 list<IN_ADDR> DBManager::updateEntry(T_ENTRY entry) {
 	char    query[200];
-	sprintf(query, "UPDATE %s set ParticipantData = '%s' WHERE Topic='%s' AND Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", this->table, entry.TD_DATA, entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT);
+	sprintf(query, "UPDATE participanttable_%s set Data = '%s' WHERE Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", entry.TD_TOPIC, entry.TD_DATA,  entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT);
 
-	printf("UPDATE ENTRY :: %s\n", query);
+	//printf("UPDATE ENTRY :: %s\n", query);
 
 	state = executeQuery(query);
 
@@ -128,15 +284,16 @@ list<IN_ADDR> DBManager::selectOppositeEntry(T_ENTRY entry, int state) {
 	IN_ADDR addr;
 
 	if (state != -1) {
-		sprintf(query, "SELECT IP FROM %s WHERE Topic='%s' AND Domain = '%s' AND Type = %d;", this->table, entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE == NODE_TYPE_PUB ? NODE_TYPE_SUB : NODE_TYPE_PUB);
+		sprintf(query, "SELECT IP FROM `participanttable_%s` WHERE Domain = '%s' AND Type = %d;",  entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE == NODE_TYPE_PUB ? NODE_TYPE_SUB : NODE_TYPE_PUB);
 
-		printf("SELECT OPPOSITE ENTRY :: %s\n", query);
+		//printf("SELECT OPPOSITE ENTRY :: %s\n", query);
 
 		state = executeQuery(query);
 
 		if (state != -1) {
 			while ((sql_row = mysql_fetch_row(sql_result)) != NULL)
 			{
+				//printf("To : %s\n", sql_row[0]);
 				addr.S_un.S_addr = inet_addr(sql_row[0]);
 				sendList.push_back(addr);
 			}

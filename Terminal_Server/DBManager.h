@@ -6,6 +6,8 @@
 
 #pragma comment(lib, "libmySQL.lib")
 
+#define TopicTable "TopicTable"
+
 class DBManager
 {
 private:
@@ -17,8 +19,8 @@ private:
 	const char	*user	= (char*)"terminal";
 	const char	*pw		= (char*)"tns2458";
 	const char	*db		= (char*)"ddsparticipanttable";
-	const char	*table	= (char*)"topicnamespace";
-	
+	const char	*table	= (char*)"topictable";
+
 	char    *query;
 	int     state;
 
@@ -28,6 +30,15 @@ public:
 	void resetManager();
 	bool checkTableExist();
 	bool DBConnection();
+
+	void clearTopicTable();
+	void initDBInfo();
+	void defineTopic();
+
+	void InputTopic(char * topic);
+	void makeParticipantTable(char  * topic);
+	bool isTopicExist(char  * topic);
+	void removeParticipantTable(char  * topic);
 
 	bool isEntryExist(T_ENTRY entry);
 	list<IN_ADDR> InsertEntry(T_ENTRY entry);
