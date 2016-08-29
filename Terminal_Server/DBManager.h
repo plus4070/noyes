@@ -28,7 +28,6 @@ public:
 	DBManager();
 	~DBManager();
 	void resetManager();
-	bool checkTableExist();
 	bool DBConnection();
 
 	void clearTopicTable();
@@ -41,10 +40,10 @@ public:
 	void removeParticipantTable(char  * topic);
 
 	bool isEntryExist(T_ENTRY entry);
-	list<IN_ADDR> InsertEntry(T_ENTRY entry);
-	list<IN_ADDR> deleteEntry(T_ENTRY entry);
-	list<IN_ADDR> updateEntry(T_ENTRY entry);
-	list<IN_ADDR> selectOppositeEntry(T_ENTRY entry, int state);
+	list<PDD_DATA> InsertEntry(T_ENTRY entry);
+	list<PDD_DATA> deleteEntry(T_ENTRY entry);
+	list<PDD_DATA> updateEntry(T_ENTRY entry);
+	list<PDD_DATA> selectRelationEntry(T_ENTRY entry, int state);
 
 	void showAllEntry();
 	void testDB();

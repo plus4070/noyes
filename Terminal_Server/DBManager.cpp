@@ -219,7 +219,7 @@ bool DBManager::isEntryExist(T_ENTRY entry) {
 	return false;
 }
 
-list<IN_ADDR> DBManager::InsertEntry(T_ENTRY entry) {
+list<PDD_DATA> DBManager::InsertEntry(T_ENTRY entry) {
 	int		state;
 	char    query[200];
 
@@ -228,10 +228,10 @@ list<IN_ADDR> DBManager::InsertEntry(T_ENTRY entry) {
 
 	state = executeQuery(query);
 	
-	return selectOppositeEntry(entry, state);
+	return selectRelationEntry(entry, state);
 }
 
-list<IN_ADDR> DBManager::deleteEntry(T_ENTRY entry) {
+list<PDD_DATA> DBManager::deleteEntry(T_ENTRY entry) {
 	char    query[200];
 	sprintf(query, "DELETE FROM participanttable_%s WHERE Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT);
 
@@ -239,10 +239,10 @@ list<IN_ADDR> DBManager::deleteEntry(T_ENTRY entry) {
 
 	state = executeQuery(query);
 
-	return selectOppositeEntry(entry, state);
+	return selectRelationEntry(entry, state);
 }
 
-list<IN_ADDR> DBManager::updateEntry(T_ENTRY entry) {
+list<PDD_DATA> DBManager::updateEntry(T_ENTRY entry) {
 	char    query[200];
 	sprintf(query, "UPDATE participanttable_%s set Data = '%s' WHERE Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", entry.TD_TOPIC, entry.TD_DATA,  entry.TD_DOMAIN, entry.TD_PUBSUBTYPE, inet_ntoa(entry.TD_PARTICIPANT_IP), entry.TD_PARTICIPANT_PORT);
 
@@ -250,7 +250,7 @@ list<IN_ADDR> DBManager::updateEntry(T_ENTRY entry) {
 
 	state = executeQuery(query);
 
-	return selectOppositeEntry(entry, state);
+	return selectRelationEntry(entry, state);
 }
 
 void DBManager::showAllEntry() {
@@ -273,30 +273,39 @@ void DBManager::showAllEntry() {
 	}
 }
 
- bool Compare(const IN_ADDR &firstElem, const IN_ADDR &secondElem) {
-	return firstElem.S_un.S_addr < secondElem.S_un.S_addr;
+ bool Compare(const PDD_DATA &firstElem, const PDD_DATA &secondElem) {
+	return firstElem.PARTICIPANT_IP < secondElem.PARTICIPANT_IP;
 }
 
 
-list<IN_ADDR> DBManager::selectOppositeEntry(T_ENTRY entry, int state) {
+list<PDD_DATA> DBManager::selectRelationEntry(T_ENTRY entry, int state) {
 	char    query[200];
-	list<IN_ADDR> sendList;
+	list<PDD_DATA> sendList;
 	IN_ADDR addr;
+	PDD_DATA data;
 
 	if (state != -1) {
-		sprintf(query, "SELECT IP FROM `participanttable_%s` WHERE Domain = '%s' AND Type = %d;",  entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE == NODE_TYPE_PUB ? NODE_TYPE_SUB : NODE_TYPE_PUB);
+		sprintf(query, "SELECT * FROM `participanttable_%s` WHERE Domain = '%s' AND Type = %d;",  entry.TD_TOPIC, entry.TD_DOMAIN, entry.TD_PUBSUBTYPE == NODE_TYPE_PUB ? NODE_TYPE_SUB : NODE_TYPE_PUB);
 
 		//printf("SELECT OPPOSITE ENTRY :: %s\n", query);
 
 		state = executeQuery(query);
 
 		if (state != -1) {
+			printf("GET DB DATA \n");
 			while ((sql_row = mysql_fetch_row(sql_result)) != NULL)
 			{
-				//printf("To : %s\n", sql_row[0]);
-				addr.S_un.S_addr = inet_addr(sql_row[0]);
-				sendList.push_back(addr);
+				printf("%s, %d, %s, %d, %s\n", sql_row[0], atoi(sql_row[1]), sql_row[2], atoi(sql_row[3]), sql_row[4]);
+				memset(&data, 0, sizeof(PDD_DATA));
+				strcpy(data.PARTICIPANT_TOPIC, entry.TD_TOPIC);
+				strcpy(data.PARTICIPANT_DOMAIN_ID, sql_row[0]);
+				data.PARTICIPANT_NODE_TYPE = atoi(sql_row[1]);
+				strcpy(data.PARTICIPANT_IP, sql_row[2]);
+				data.PARTICIPANT_PORT = atoi(sql_row[3]);
+				memcpy(data.PARTICIPANT_DATA, sql_row[4], sizeof(sql_row[4]));
+				sendList.push_back(data);
 			}
+			printf("GET DB DATA ------------------------------ \n");
 		}
 	}
 

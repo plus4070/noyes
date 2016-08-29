@@ -85,20 +85,25 @@ void TCPSocket::SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData) {
 }
 
 static UINT WINAPI storing(LPVOID p) {
-	TCPSocket *		tcpSocket = (TCPSocket*)p;
-	SOCKET			clientSocket;
-	SOCKADDR_IN		tempAddr;
-	T_ENTRY			receiveData;
-	list<IN_ADDR>   distributeList;
-	list<IN_ADDR>::iterator   it;
+	TCPSocket *						tcpSocket = (TCPSocket*)p;
+	SOCKET							clientSocket;
+	SOCKADDR_IN						tempAddr;
+	T_ENTRY							receiveData;
+	list<PDD_DATA>   distributeList;
+	list<PDD_DATA>::iterator   it;
+	int counter;
 
 	PPDD_NODE PDatagram = (PPDD_NODE)malloc(sizeof(_PDD_NODE));
+	PPDD_NODE ReturnDatagram = (PPDD_NODE)malloc(sizeof(_PDD_NODE));
 	SOCKET ClientSocket = CreateSocket();
 
 	memset(&tempAddr, 0, sizeof(tempAddr));
 	tempAddr.sin_family = AF_INET;
 
 	while (1) {
+		memset(PDatagram, 0, sizeof(PDD_NODE));
+		memset(ReturnDatagram, 0, sizeof(PDD_NODE));
+
 		Sleep(10);
 		if (tcpSocket->RTable->isRequestExist()) {
 			T_ENTRY TD;
@@ -123,30 +128,35 @@ static UINT WINAPI storing(LPVOID p) {
 				memcpy(receiveData.TD_DATA,		entry.TNSN_DATA,	MAX_DATA_SIZE);
 
 				PDatagram->PDD_HEADER.MESSAGE_TYPE = entry.TNSN_MESSAGETYPE;
-				PDatagram->PDD_HEADER.PARTICIPANT_NODE_TYPE = entry.TNSN_NODETYPE;
-				memcpy(PDatagram->PDD_HEADER.PARTICIPANT_TOPIC, entry.TNSN_TOPIC, MAX_CHAR);
-				memcpy(PDatagram->PDD_HEADER.PARTICIPANT_DOMAIN_ID, entry.TNSN_DOMAIN, MAX_CHAR);
+				
+				if(entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_SAVE)
+					ReturnDatagram->PDD_HEADER.MESSAGE_TYPE = entry.TNSN_MESSAGETYPE;
 
-				PDatagram->PDD_DATA.PARTICIPANT_PORT = entry.TNSN_PARTICIPANT_PORT;
-				memcpy(PDatagram->PDD_DATA.PARTICIPANT_IP, entry.TNSN_PARTICIPANT_ADDR, ADDRESS_SIZE);
-				memcpy(PDatagram->PDD_DATA.PARTICIPANT_DATA, entry.TNSN_DATA, MAX_CHAR);
+				PDatagram->PDD_HEADER.NUMBER_OF_PARTICIPANT = 1;
+
+				PDatagram->PDD_DATA[0].PARTICIPANT_NODE_TYPE = entry.TNSN_NODETYPE;
+				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_TOPIC, entry.TNSN_TOPIC);
+				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_DOMAIN_ID, entry.TNSN_DOMAIN);
+				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_IP ,entry.TNSN_PARTICIPANT_ADDR);
+				PDatagram->PDD_DATA[0].PARTICIPANT_PORT = entry.TNSN_PARTICIPANT_PORT;
+				memcpy(PDatagram->PDD_DATA[0].PARTICIPANT_DATA, entry.TNSN_DATA, MAX_DATA_SIZE);
+
+				distributeList = tcpSocket->DB->InsertEntry(receiveData);
 			}
 
 			switch (entry.TNSN_MESSAGETYPE)
 			{
 			case MESSAGE_TYPE_SAVE:
-				distributeList = tcpSocket->DB->InsertEntry(receiveData);
 				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_SAVEDONE;
 				break;
 			case MESSAGE_TYPE_REMOVE:
-				distributeList = tcpSocket->DB->deleteEntry(receiveData);
 				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_REMOVEDONE;
 				break;
 			case MESSAGE_TYPE_MODIFY:
-				distributeList = tcpSocket->DB->updateEntry(receiveData);
 				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_MODIFYDONE;
 				break;
 			default:
+				//while문 밖으로 나갈 방법 추가
 				puts("ERROR MSG TYPE");
 				break;
 			}
@@ -186,12 +196,19 @@ static UINT WINAPI storing(LPVOID p) {
 
 			tempAddr.sin_port = htons(DDS_PORT);
 			//데이터 전파 시작
+			counter = 0;
+
 			for (it = distributeList.begin(); it != distributeList.end(); ++it) {
+				printf("To : %s || Data : %s / %s / %s / %s / %d / %s\n", (*it).PARTICIPANT_IP, (*it).PARTICIPANT_NODE_TYPE == NODE_TYPE_PUB ? "PUB" : "SUB",
+					(*it).PARTICIPANT_TOPIC, (*it).PARTICIPANT_DOMAIN_ID, (*it).PARTICIPANT_IP, (*it).PARTICIPANT_PORT, (*it).PARTICIPANT_DATA);
+				
+				ReturnDatagram->PDD_DATA[counter++] = (*it);
+
 				ClientSocket = CreateSocket();
 
-				tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(*it));
+				tempAddr.sin_addr.S_un.S_addr = inet_addr((*it).PARTICIPANT_IP);
 
-				printf("Sending to %s..... \n", inet_ntoa(*it));
+				printf("Sending to %s..... \n", (*it).PARTICIPANT_IP);
 
 				if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
 					ErrorHandling("connect() error!");
@@ -201,7 +218,61 @@ static UINT WINAPI storing(LPVOID p) {
 				closesocket(ClientSocket);
 
 				printf("Complete ..... \n");
+
+
+				/*
+				if (entry.TNSN_NODETYPE != (*it).second.PARTICIPANT_NODE_TYPE) {
+					PDatagram->PDD_DATA[counter] = (*it).second;
+					counter++;
+
+					PDatagram->PDD_HEADER.NUMBER_OF_PARTICIPANT = counter + 1;
+
+					tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa((*it).first));
+				}
+				else {
+					ClientSocket = CreateSocket();
+
+					if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+						ErrorHandling("connect() error!");
+
+					send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
+
+					closesocket(ClientSocket);
+				}
+
+				ClientSocket = CreateSocket();
+
+				tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa((*it).first));
+
+				printf("Sending to %s..... \n", inet_ntoa((*it).first));
+
+				if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+					ErrorHandling("connect() error!");
+
+				send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
+
+				closesocket(ClientSocket);
+
+				printf("Complete ..... \n");
+				*/
 			}
+
+			ReturnDatagram->PDD_HEADER.NUMBER_OF_PARTICIPANT = counter;
+
+			ClientSocket = CreateSocket();
+
+			tempAddr.sin_addr.S_un.S_addr = inet_addr(entry.TNSN_PARTICIPANT_ADDR);
+
+			printf("Sending to %s..... \n", entry.TNSN_PARTICIPANT_ADDR);
+
+			if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+				ErrorHandling("connect() error!");
+
+			send(ClientSocket, (const char *)ReturnDatagram, sizeof(_PDD_NODE), 0);
+
+			closesocket(ClientSocket);
+
+			printf("Complete ..... \n");
 		}
 	}
 }

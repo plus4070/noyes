@@ -8,7 +8,7 @@
 #define MAX_CHAR		100
 #define MAX_DATA_SIZE	800
 #define MAX_PDD_NUMBER	25
-#define BUFSIZE		1000
+#define BUFSIZE			1000
 #define NULL			0
 
 #define ADDRESS_SIZE	16
@@ -54,7 +54,7 @@ typedef struct _TNSN_ENTRY {
 	char			TNSN_DATA[MAX_DATA_SIZE];
 } TNSN_ENTRY, *PTNSN_ENTRY;
 
-// TopicTable
+// TopicTable √÷ªÛ¿ß∏∏ æ∏
 typedef struct _T_ENTRY {
 	char			TD_DOMAIN[MAX_CHAR];
 	char			TD_TOPIC[MAX_CHAR];
@@ -107,12 +107,13 @@ typedef struct _R_NODE {
 // participantDataDistributor
 typedef struct _PDD_HEADER {
 	int					MESSAGE_TYPE;
-	char				PARTICIPANT_TOPIC[MAX_CHAR];
-	char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
-	int					PARTICIPANT_NODE_TYPE;
+	int					NUMBER_OF_PARTICIPANT;
 } PDD_HEADER, *PPDD_HEADER;
 
 typedef struct _PDD_DATA {
+	int					PARTICIPANT_NODE_TYPE;
+	char				PARTICIPANT_TOPIC[MAX_CHAR];
+	char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
 	char				PARTICIPANT_IP[ADDRESS_SIZE];
 	int					PARTICIPANT_PORT;
 	char 				PARTICIPANT_DATA[MAX_DATA_SIZE];
@@ -120,6 +121,6 @@ typedef struct _PDD_DATA {
 
 typedef struct _PDD_NODE {
 	PDD_HEADER			PDD_HEADER;
-	PDD_DATA 			PDD_DATA;
+	PDD_DATA 			PDD_DATA[MAX_PDD_NUMBER];
 } PDD_NODE, *PPDD_NODE;
 
