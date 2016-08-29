@@ -15,7 +15,6 @@ public:
 	void				resetTable();
 
 	PR_NODE		r_head;
-	PR_NODE		r_tail;
 
 	vector<_R_ENTRY>	requestList;
 	int					numOfRequests;
@@ -24,5 +23,7 @@ public:
 	PR_NODE				getLastEntry();
 	void				addEntry(SOCKET requestSocket, TNSN_ENTRY message);
 
+private:
+	CRITICAL_SECTION cs;
 };
 
