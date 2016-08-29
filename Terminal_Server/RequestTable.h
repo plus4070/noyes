@@ -23,5 +23,7 @@ public:
 	PR_NODE				getLastEntry();
 	void				addEntry(IN_ADDR ip, TNSN_ENTRY message);
 
+private:
+	CRITICAL_SECTION cs;
 };
 

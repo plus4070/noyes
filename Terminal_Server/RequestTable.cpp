@@ -5,11 +5,14 @@ RequestTable::RequestTable() {
 	resetTable();
 }
 
-RequestTable::~RequestTable() {}
+RequestTable::~RequestTable() {
+	DeleteCriticalSection(&cs);
+}
 
 void RequestTable::resetTable() {
 	r_head = NULL;
 	numOfRequests = 0;
+	InitializeCriticalSection(&cs);
 }
 
 bool RequestTable::isRequestExist() {
@@ -20,6 +23,8 @@ PR_NODE RequestTable::getLastEntry() {
 	//get Tail Entry
 	PR_NODE currentNode = NULL;
 	PR_NODE beforeNode = NULL;
+
+	EnterCriticalSection(&cs);
 
 	if (r_head == NULL) {
 		return NULL;
@@ -38,6 +43,9 @@ PR_NODE RequestTable::getLastEntry() {
 		}
 		numOfRequests--;
 	}
+
+	LeaveCriticalSection(&cs);
+
 	return currentNode;
 }
 
@@ -51,6 +59,9 @@ void	RequestTable::addEntry(IN_ADDR ip, TNSN_ENTRY message) {
 	newNode->key = entry;
 	newNode->next = NULL;
 
+
+	EnterCriticalSection(&cs);
+
 	if (r_head == NULL) {
 		r_head = newNode;
 	}
@@ -60,6 +71,8 @@ void	RequestTable::addEntry(IN_ADDR ip, TNSN_ENTRY message) {
 	}
 
 	numOfRequests++;
+
+	LeaveCriticalSection(&cs);
 
 	return;
 }
