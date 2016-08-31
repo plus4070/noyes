@@ -21,7 +21,7 @@ public:
 
 	bool				isRequestExist();
 	PR_NODE				getLastEntry();
-	void				addEntry(IN_ADDR ip, TNSN_ENTRY message);
+	void				addEntry(IN_ADDR ip, PDD_NODE message);
 
 private:
 	CRITICAL_SECTION cs;

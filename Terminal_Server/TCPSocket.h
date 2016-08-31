@@ -15,7 +15,6 @@ using namespace std;
 class TCPSocket
 {
 public:
-	TNSN_ENTRY					TNSNDatagram;
 	RequestTable *				RTable;
 	TerminalTable *				participantList;
 	ParticipantDataDistributor*	distributor;
@@ -41,14 +40,13 @@ private:
 	char message[BUFSIZE];
 	int strLen;
 
-
 public:
 	TCPSocket();
 	int StartServer();
 
 	void ResetTCPSocket();
 	void Response();
-	void SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData);
+	void SaveRequests(IN_ADDR ip, PDD_NODE receiveData);
 	void participantDataDistribute();
 	void inputDummyData();
 	void inputDummyDataToDB();

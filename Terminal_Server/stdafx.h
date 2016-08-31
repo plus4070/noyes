@@ -40,19 +40,26 @@
 
 using namespace std;
 
-// TCPSocket
-typedef struct _TNSN_ENTRY {
-	int				TNSN_ID;
-	char			TNSN_DOMAIN[MAX_CHAR];
-	char			TNSN_TOPIC[MAX_CHAR];
-	char			TNSN_TOKEN[MAX_CHAR];
-	int				TNSN_TOKENLEVEL;
-	int				TNSN_NODETYPE;
-	int				TNSN_MESSAGETYPE;
-	char			TNSN_PARTICIPANT_ADDR[ADDRESS_SIZE];
-	int				TNSN_PARTICIPANT_PORT;
-	char			TNSN_DATA[MAX_DATA_SIZE];
-} TNSN_ENTRY, *PTNSN_ENTRY;
+// participantDataDistributor
+typedef struct _PDD_HEADER {
+	int					MESSAGE_TYPE;
+	int					NUMBER_OF_PARTICIPANT;
+} PDD_HEADER, *PPDD_HEADER;
+
+typedef struct _PDD_DATA {
+	int					PARTICIPANT_NODE_TYPE;
+	char				PARTICIPANT_TOPIC[MAX_CHAR];
+	char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
+	char				PARTICIPANT_IP[ADDRESS_SIZE];
+	int					PARTICIPANT_PORT;
+	char 				PARTICIPANT_DATA[MAX_DATA_SIZE];
+} PDD_DATA, *PPDD_DATA;
+
+typedef struct _PDD_NODE {
+	PDD_HEADER			PDD_HEADER;
+	PDD_DATA 			PDD_DATA[MAX_PDD_NUMBER];
+} PDD_NODE, *PPDD_NODE;
+
 
 // TopicTable √÷ªÛ¿ß∏∏ æ∏
 typedef struct _T_ENTRY {
@@ -94,7 +101,7 @@ typedef struct _DOMAIN_ENTRY {
 
 // RequestTable
 typedef struct _R_ENTRY {
-	TNSN_ENTRY			REQUEST_DATA;
+	PDD_NODE			REQUEST_DATA;
 	IN_ADDR				REQUEST_IP;
 } R_ENTRY, *PR_ENTRY;
 
@@ -103,24 +110,4 @@ typedef struct _R_NODE {
 	struct _R_NODE		*next;
 } R_NODE, *PR_NODE;
 
-
-// participantDataDistributor
-typedef struct _PDD_HEADER {
-	int					MESSAGE_TYPE;
-	int					NUMBER_OF_PARTICIPANT;
-} PDD_HEADER, *PPDD_HEADER;
-
-typedef struct _PDD_DATA {
-	int					PARTICIPANT_NODE_TYPE;
-	char				PARTICIPANT_TOPIC[MAX_CHAR];
-	char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
-	char				PARTICIPANT_IP[ADDRESS_SIZE];
-	int					PARTICIPANT_PORT;
-	char 				PARTICIPANT_DATA[MAX_DATA_SIZE];
-} PDD_DATA, *PPDD_DATA;
-
-typedef struct _PDD_NODE {
-	PDD_HEADER			PDD_HEADER;
-	PDD_DATA 			PDD_DATA[MAX_PDD_NUMBER];
-} PDD_NODE, *PPDD_NODE;
 

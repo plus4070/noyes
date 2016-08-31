@@ -80,8 +80,8 @@ void ErrorHandling(char *message)
 	exit(1);
 }
 
-void TCPSocket::SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData) {
-	RTable->addEntry(ip, tnsData);
+void TCPSocket::SaveRequests(IN_ADDR ip, PDD_NODE receiveData) {
+	RTable->addEntry(ip, receiveData);
 }
 
 static UINT WINAPI storing(LPVOID p) {
@@ -111,49 +111,49 @@ static UINT WINAPI storing(LPVOID p) {
 			PR_NODE PN = tcpSocket->RTable->getLastEntry();
 
 			//echo Data
-			TNSN_ENTRY entry = PN->key.REQUEST_DATA;
+			PDD_NODE entry = PN->key.REQUEST_DATA;
 
-			if (!tcpSocket->DB->isTopicExist(entry.TNSN_TOPIC)) {
+			if (!tcpSocket->DB->isTopicExist(entry.PDD_DATA[0].PARTICIPANT_TOPIC)) {
 				printf("This Topic isn't Exist\n");
 				continue;
 			}
 
-			if (entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_SAVE || entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_MODIFY || entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_REMOVE) {
-				receiveData.TD_PARTICIPANT_IP.S_un.S_addr	= inet_addr(entry.TNSN_PARTICIPANT_ADDR);
-				receiveData.TD_PUBSUBTYPE					= entry.TNSN_NODETYPE;
-				receiveData.TD_PARTICIPANT_PORT				= entry.TNSN_PARTICIPANT_PORT;
+			if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_SAVE || entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_MODIFY || entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REMOVE) {
+				receiveData.TD_PARTICIPANT_IP.S_un.S_addr	= inet_addr(entry.PDD_DATA[0].PARTICIPANT_IP);
+				receiveData.TD_PUBSUBTYPE					= entry.PDD_DATA[0].PARTICIPANT_NODE_TYPE;
+				receiveData.TD_PARTICIPANT_PORT				= entry.PDD_DATA[0].PARTICIPANT_PORT;
 				
-				memcpy(receiveData.TD_TOPIC,	entry.TNSN_TOPIC,	MAX_CHAR);
-				memcpy(receiveData.TD_DOMAIN,	entry.TNSN_DOMAIN,	MAX_CHAR);
-				memcpy(receiveData.TD_DATA,		entry.TNSN_DATA,	MAX_DATA_SIZE);
+				memcpy(receiveData.TD_TOPIC,	entry.PDD_DATA[0].PARTICIPANT_TOPIC,	MAX_CHAR);
+				memcpy(receiveData.TD_DOMAIN,	entry.PDD_DATA[0].PARTICIPANT_DOMAIN_ID,	MAX_CHAR);
+				memcpy(receiveData.TD_DATA,		entry.PDD_DATA[0].PARTICIPANT_DATA,	MAX_DATA_SIZE);
 
-				PDatagram->PDD_HEADER.MESSAGE_TYPE = entry.TNSN_MESSAGETYPE;
+				PDatagram->PDD_HEADER.MESSAGE_TYPE = entry.PDD_HEADER.MESSAGE_TYPE;
 				
-				if(entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_SAVE)
-					ReturnDatagram->PDD_HEADER.MESSAGE_TYPE = entry.TNSN_MESSAGETYPE;
+				if(entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_SAVE)
+					ReturnDatagram->PDD_HEADER.MESSAGE_TYPE = entry.PDD_HEADER.MESSAGE_TYPE;
 
 				PDatagram->PDD_HEADER.NUMBER_OF_PARTICIPANT = 1;
 
-				PDatagram->PDD_DATA[0].PARTICIPANT_NODE_TYPE = entry.TNSN_NODETYPE;
-				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_TOPIC, entry.TNSN_TOPIC);
-				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_DOMAIN_ID, entry.TNSN_DOMAIN);
-				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_IP ,entry.TNSN_PARTICIPANT_ADDR);
-				PDatagram->PDD_DATA[0].PARTICIPANT_PORT = entry.TNSN_PARTICIPANT_PORT;
-				memcpy(PDatagram->PDD_DATA[0].PARTICIPANT_DATA, entry.TNSN_DATA, MAX_DATA_SIZE);
+				PDatagram->PDD_DATA[0].PARTICIPANT_NODE_TYPE = entry.PDD_DATA[0].PARTICIPANT_NODE_TYPE;
+				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_TOPIC, entry.PDD_DATA[0].PARTICIPANT_TOPIC);
+				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_DOMAIN_ID, entry.PDD_DATA[0].PARTICIPANT_DOMAIN_ID);
+				strcpy(PDatagram->PDD_DATA[0].PARTICIPANT_IP ,entry.PDD_DATA[0].PARTICIPANT_IP);
+				PDatagram->PDD_DATA[0].PARTICIPANT_PORT = entry.PDD_DATA[0].PARTICIPANT_PORT;
+				memcpy(PDatagram->PDD_DATA[0].PARTICIPANT_DATA, entry.PDD_DATA[0].PARTICIPANT_DATA, MAX_DATA_SIZE);
 
 				distributeList = tcpSocket->DB->InsertEntry(receiveData);
 			}
 
-			switch (entry.TNSN_MESSAGETYPE)
+			switch (entry.PDD_HEADER.MESSAGE_TYPE)
 			{
 			case MESSAGE_TYPE_SAVE:
-				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_SAVEDONE;
+				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_SAVEDONE;
 				break;
 			case MESSAGE_TYPE_REMOVE:
-				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_REMOVEDONE;
+				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_REMOVEDONE;
 				break;
 			case MESSAGE_TYPE_MODIFY:
-				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_MODIFYDONE;
+				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_MODIFYDONE;
 				break;
 			default:
 				//while문 밖으로 나갈 방법 추가
@@ -261,9 +261,9 @@ static UINT WINAPI storing(LPVOID p) {
 
 			ClientSocket = CreateSocket();
 
-			tempAddr.sin_addr.S_un.S_addr = inet_addr(entry.TNSN_PARTICIPANT_ADDR);
+			tempAddr.sin_addr.S_un.S_addr = inet_addr(entry.PDD_DATA[0].PARTICIPANT_IP);
 
-			printf("Sending to %s..... \n", entry.TNSN_PARTICIPANT_ADDR);
+			printf("Sending to %s..... \n", entry.PDD_DATA[0].PARTICIPANT_IP);
 
 			if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
 				ErrorHandling("connect() error!");
@@ -336,7 +336,7 @@ static void LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockAr
 static UINT WINAPI receiving(LPVOID p) {
 	TCPSocket * tcpSocket = (TCPSocket*)p;
 
-	TNSN_ENTRY	TNSNDatagram;
+	PDD_NODE receiveData;
 
 	WSADATA wsaData;
 	SOCKET hServSock;
@@ -446,7 +446,7 @@ static UINT WINAPI receiving(LPVOID p) {
 					//		서버 작업은 여기서 다하겠지..
 					//
 					// 데이터를 받음 (message에 받은 데이터를 담음)
-					strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&TNSNDatagram, sizeof(TNSNDatagram), 0);
+					strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&receiveData, sizeof(receiveData), 0);
 
 					if (getpeername(sockArray[index - WSA_WAIT_EVENT_0], (struct sockaddr *)&name, &len) != 0) {
 						perror("getpeername Error");
@@ -457,7 +457,7 @@ static UINT WINAPI receiving(LPVOID p) {
 
 					if (strLen != -1) {
 						//RequestTable에 일단 저장
-						tcpSocket->SaveRequests(name.sin_addr, TNSNDatagram);
+						tcpSocket->SaveRequests(name.sin_addr, receiveData);
 						//Response();
 					}
 
