@@ -2,12 +2,11 @@
 #include <WinSock2.h>
 
 #define MAX_CHAR		100
-#define EDP_DATA_SIZE	1000
-#define PDP_DATA_SIZE	1000
-#define MAX_DATA_SIZE	1000
+#define MAX_DATA_SIZE	800
+#define MAX_PDD_NUMBER  25
 #define NULL			0
 
-#define ADDRESS_SIZE	16
+#define	ADDRESS_SIZE	16
 
 #define STATE_NEW		0
 #define STATE_SET		1
@@ -28,25 +27,12 @@
 
 #define NODE_TYPE_PUB			100
 #define NODE_TYPE_SUB			200
-
 #define BUFSIZE					100		// 받아올 데이터 최대 크기
-#define FES_PORT				3000	// 포트번호 할당
-#define TNS_PORT				3001	// 포트번호 할당
+#define FES_PORT				3000		// 포트번호 할당
+#define TNS_PORT				3001
+#define TERMINAL_PORT			3002
 
-
-// TCPSocket
-typedef struct _TNSN_ENTRY {
-	int				TNSN_ID;
-	char			TNSN_DOMAIN[MAX_CHAR];
-	char			TNSN_TOPIC[MAX_CHAR];
-	char			TNSN_TOKEN[MAX_CHAR];
-	int				TNSN_TOKENLEVEL;
-	int				TNSN_NODETYPE;
-	int				TNSN_MESSAGETYPE;
-	char			TNSN_PARTICIPANT_ADDR[ADDRESS_SIZE];
-	int				TNSN_PARTICIPANT_PORT;
-	char			TNSN_DATA[MAX_DATA_SIZE];
-} TNSN_ENTRY, *PTNSN_ENTRY;
+#define IP						"127.0.0.1"
 
 // TopicNameTable
 typedef struct _TN_ENTRY {
@@ -63,9 +49,29 @@ typedef struct _TN_NODE {
 
 
 
+//TCPSocket
+typedef struct _PDD_HEADER {
+	int					MESSAGE_TYPE;
+	int					PARTICIPANT_NUMBER_OF_DATA;
+} PDD_HEADER, *PPDD_HEADER;
+
+typedef struct _PDD_DATA {
+	int					PARTICIPANT_NODE_TYPE;
+	char				PARTICIPANT_TOPIC[MAX_CHAR];
+	char				PARTICIPANT_DOMAIN_ID[MAX_CHAR];
+	char				PARTICIPANT_IP[ADDRESS_SIZE];
+	int					PARTICIPANT_PORT;
+	char 				PARTICIPANT_DATA[MAX_DATA_SIZE];
+} PDD_DATA, *PPDD_DATA;
+
+typedef struct _PDD_NODE {
+	PDD_HEADER			PDD_HEADER;
+	PDD_DATA 			PDD_DATA[MAX_PDD_NUMBER];
+} PDD_NODE, *PPDD_NODE;
+
 // RequestTable
 typedef struct _R_ENTRY {
-	TNSN_ENTRY			REQUEST_DATA;
+	PDD_NODE			REQUEST_DATA;
 	IN_ADDR				REQUEST_IP;
 } R_ENTRY, *PR_ENTRY;
 

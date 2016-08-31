@@ -49,11 +49,11 @@ PR_NODE RequestTable::getLastEntry() {
 	return currentNode;
 }
 
-void	RequestTable::addEntry(IN_ADDR ip, TNSN_ENTRY message) {
+void	RequestTable::addEntry(IN_ADDR ip, PDD_NODE message) {
 	R_ENTRY entry;
 	PR_NODE newNode = (PR_NODE)malloc(sizeof(R_NODE));
 
-	memcpy(&(entry.REQUEST_DATA), (char *)&message, sizeof(TNSN_ENTRY));
+	memcpy(&(entry.REQUEST_DATA), (char *)&message, sizeof(PDD_NODE));
 	entry.REQUEST_IP = ip;
 
 	newNode->key = entry;

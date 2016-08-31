@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <winsock2.h> 
+#include <deque>
+#include <vector>
 #include "stdafx.h"
 #include "TopicNameTable.h"
 #include "RequestTable.h"
@@ -17,9 +19,9 @@ class TCPSocket
 {
 public:
 	TCPSocket();
-	TNSN_ENTRY		TNSNDatagram;
 	TopicNameTable*	TNTable;
 	RequestTable *	RTable;
+	deque<PDD_NODE>	recvQueue;
 
 private:
 	// 변수 선언	
@@ -53,7 +55,7 @@ public:
 	int StartServer();
 	void ResetTCPSocket();
 	void Response();
-	void SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData);
+	void SaveRequests(IN_ADDR ip, PDD_NODE receiveData);
 	void initialize();
 };
 

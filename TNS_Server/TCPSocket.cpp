@@ -14,7 +14,6 @@ TCPSocket::TCPSocket()
 int TCPSocket::StartServer()
 {
 	//Test Dummy Insert
-	
 
 	// 윈속 초기화 (성공시 0, 실패시 에러 코드리턴)
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -88,6 +87,7 @@ void TCPSocket::ResetTCPSocket() {
 	this->sockTotal = 0;
 	this->RTable = new RequestTable();
 	this->TNTable = new TopicNameTable();
+	this->recvQueue.clear();
 }
 
 
@@ -168,29 +168,30 @@ void TCPSocket::Response() {
 	//저장된 RequestTable에서 꺼내와서 데이터 송신
 	if (RTable->isRequestExist()) {
 		PR_NODE PN = RTable->getLastEntry();
-		TNSN_ENTRY entry = PN->key.REQUEST_DATA;
+		PDD_NODE entry = PN->key.REQUEST_DATA;
 
-		if (entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_REQUEST) {
+		if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REQUEST) {
 			//수신 메시지 출력
 			//cout << "Request MSG" << endl;
 			//cout << "Request Topic :" << entry.TNSN_TOPIC << endl;
 			//cout << "Request Token :" << entry.TNSN_TOKEN << endl;
 			//cout << "Request TokenLevel :" << entry.TNSN_TOKENLEVEL << endl;
 			//cout << "Request TYPE :" << entry.TNSN_DATATYPE << endl;
-			TE.TN_LEVEL = entry.TNSN_TOKENLEVEL;
-			memcpy(TE.TN_TOPIC, entry.TNSN_TOPIC, sizeof(entry.TNSN_TOPIC));
-			memcpy(TE.TN_TOKEN, entry.TNSN_TOKEN, sizeof(entry.TNSN_TOKEN));
+			memcpy(&TE.TN_LEVEL, entry.PDD_DATA[0].PARTICIPANT_DATA, sizeof(int));
+
+			memcpy(TE.TN_TOPIC, entry.PDD_DATA[0].PARTICIPANT_TOPIC, MAX_CHAR);
+			
 			if (TNTable->isEntryExist(TE)) {
 				TNTable->getEntry(&TE);
-				memcpy(entry.TNSN_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
-				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_RESPONSE;
+				memcpy(entry.PDD_DATA[0].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
+				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_RESPONSE;
 			}
 			else {
-				entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_NOTEXIST;
+				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
 			}
 
 			cout << "Response TOKEN :" << TE.TN_TOKEN << "/" << TE.TN_NEXTZONE << endl;
-			cout << "Response ADDRESS :" << entry.TNSN_DATA << endl;
+			cout << "Response ADDRESS :" << entry.PDD_DATA[0].PARTICIPANT_DATA << endl;
 		}
 
 		// 에코(데이터를준 클라이언트에 다시 데이터쏘기)
@@ -200,15 +201,16 @@ void TCPSocket::Response() {
 	}
 }
 
-void TCPSocket::SaveRequests(IN_ADDR ip, TNSN_ENTRY tnsData) {
-	RTable->addEntry(ip, tnsData);
+void TCPSocket::SaveRequests(IN_ADDR ip, PDD_NODE receiveData) {
+	RTable->addEntry(ip, receiveData);
 }
 
 
 static UINT WINAPI sending(LPVOID p) {
-	TCPSocket *		tcpSocket = (TCPSocket*)p;
-	SOCKET			clientSocket;
-	SOCKADDR_IN		tempAddr;
+	TCPSocket *			tcpSocket = (TCPSocket*)p;
+	SOCKET				clientSocket;
+	SOCKADDR_IN			tempAddr;
+	vector<string>		tokenArray;
 
 	while (1) {
 		Sleep(10);
@@ -216,30 +218,32 @@ static UINT WINAPI sending(LPVOID p) {
 			TN_ENTRY TE;
 			//저장된 RequestTable에서 꺼내와서 데이터 송신
 			PR_NODE PN = tcpSocket->RTable->getLastEntry();
-			TNSN_ENTRY entry = PN->key.REQUEST_DATA;
+			PDD_NODE entry = PN->key.REQUEST_DATA;
 
-			if (entry.TNSN_MESSAGETYPE == MESSAGE_TYPE_REQUEST) {
+			if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REQUEST) {
+				tokenArray = tcpSocket->TNTable->splitTopic(entry.PDD_DATA[0].PARTICIPANT_TOPIC);
 				//수신 메시지 출력
-				cout << "Request MSG" << endl;
-				cout << "Request Topic :" << entry.TNSN_TOPIC << endl;
-				cout << "Request Token :" << entry.TNSN_TOKEN << endl;
-				cout << "Request TokenLevel :" << entry.TNSN_TOKENLEVEL << endl;
-				cout << "Request TYPE :" << entry.TNSN_MESSAGETYPE << endl;
-
-				TE.TN_LEVEL = entry.TNSN_TOKENLEVEL;
-				memcpy(TE.TN_TOPIC, entry.TNSN_TOPIC, sizeof(entry.TNSN_TOPIC));
-				memcpy(TE.TN_TOKEN, entry.TNSN_TOKEN, sizeof(entry.TNSN_TOKEN));
 				
+				cout << "Request MSG" << endl;
+				cout << "Request Topic :" << entry.PDD_DATA[0].PARTICIPANT_TOPIC << endl;
+				cout << "Request TokenLevel :" << entry.PDD_DATA[0].PARTICIPANT_DATA << endl;
+				cout << "Request TYPE :" << entry.PDD_HEADER.MESSAGE_TYPE << endl;
+
+				TE.TN_LEVEL = atoi(entry.PDD_DATA[0].PARTICIPANT_DATA);
+				
+				memcpy(TE.TN_TOPIC, entry.PDD_DATA[0].PARTICIPANT_TOPIC, MAX_CHAR);
+				memcpy(TE.TN_TOKEN, tokenArray.at(TE.TN_LEVEL - 1).c_str(), MAX_CHAR);
+
 				if (tcpSocket->TNTable->isEntryExist(TE)) {
 					tcpSocket->TNTable->getEntry(&TE);
-					memcpy(entry.TNSN_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
-					entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_RESPONSE;
-					printf("%s", entry.TNSN_DATA);
+					memcpy(entry.PDD_DATA[0].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
+					entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_RESPONSE;
+					printf("%s", entry.PDD_DATA[0].PARTICIPANT_DATA);
 
 					cout << "RESPONSE" << endl;
 				}
 				else {
-					entry.TNSN_MESSAGETYPE = MESSAGE_TYPE_NOTEXIST;
+					entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
 					cout << "NOT EXIST" << endl;
 				}
 
@@ -334,7 +338,7 @@ static void LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockAr
 static UINT WINAPI receiving(LPVOID p) {
 	TCPSocket * tcpSocket = (TCPSocket*)p;
 
-	TNSN_ENTRY	TNSNDatagram;
+	PDD_NODE	receiveData;
 
 	WSADATA wsaData;
 	SOCKET hServSock;
@@ -444,7 +448,7 @@ static UINT WINAPI receiving(LPVOID p) {
 					//		서버 작업은 여기서 다하겠지..
 					//
 					// 데이터를 받음 (message에 받은 데이터를 담음)
-					strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&TNSNDatagram, sizeof(TNSNDatagram), 0);
+					strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&receiveData, sizeof(PDD_NODE), 0);
 					
 					if (getpeername(sockArray[index - WSA_WAIT_EVENT_0], (struct sockaddr *)&name, &len) != 0) {
 						perror("getpeername Error");
@@ -455,7 +459,7 @@ static UINT WINAPI receiving(LPVOID p) {
 					
 					if (strLen != -1) {
 						//RequestTable에 일단 저장
-						tcpSocket->SaveRequests(name.sin_addr, TNSNDatagram);
+						tcpSocket->SaveRequests(name.sin_addr, receiveData);
 						//Response();
 					}
 

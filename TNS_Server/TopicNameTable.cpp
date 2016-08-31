@@ -1,8 +1,5 @@
 #include "TopicNameTable.h"
-#include <stdlib.h>
-#include <iostream>
-#include <stdio.h>
-#include <string.h>
+
 TopicNameTable::TopicNameTable()
 {
 	resetTable();
@@ -106,4 +103,13 @@ void	TopicNameTable::testShowAll() {
 		}
 	}
 	puts("===============================================");
+}
+vector<string> TopicNameTable::splitTopic(const string & s) {
+	stringstream ss(s);
+	string item;
+	vector<string> tokens;
+	while (getline(ss, item, delim)) {
+		tokens.push_back(item);
+	}
+	return tokens;
 }
