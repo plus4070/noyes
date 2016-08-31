@@ -85,11 +85,11 @@ void		TopicNameSpaceTable::setEntry(int id, char addr[ADDRESS_SIZE], int state) 
 	if (numOfRequests != 0) {
 		PTNSP_NODE currentNode = t_head;
 
-		while (strcmp(addr, currentNode->key.TN_SPACE_TOPIC) != 0 || currentNode->next != NULL) {
+		while (currentNode->key.TN_SPACE_ID != id || currentNode->next != NULL) {
 			currentNode = currentNode->next;
 		}
 
-		if (strcmp(addr, currentNode->key.TN_SPACE_TOPIC) == 0){
+		if (currentNode->key.TN_SPACE_ID == id){
 			vector<string> topicVector = splitTopic(currentNode->key.TN_SPACE_TOPIC);
 
 			memcpy(currentNode->key.TN_SPACE_NEXTZONE_ADDR, addr, sizeof(addr));

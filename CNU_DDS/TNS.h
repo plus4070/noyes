@@ -43,6 +43,7 @@
 
 // TCPSocket
 	typedef struct _PDD_HEADER {
+		int					ID;
 		int					MESSAGE_TYPE;
 		int					PARTICIPANT_NUMBER_OF_DATA;
 	} PDD_HEADER, *PPDD_HEADER;

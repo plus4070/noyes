@@ -323,7 +323,7 @@ namespace CNU_DDS
 				for(it = recvQueue->begin(); it != recvQueue->end(); it++){
 					datagram = (*it);
 					if(datagram.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_RESPONSE && TNS_TYPE == 1){
-						TNST->setEntry(10, datagram.PDD_DATA[0].PARTICIPANT_DATA, STATE_SET);
+						TNST->setEntry(Datagram.PDD_HEADER.ID, datagram.PDD_DATA[0].PARTICIPANT_DATA, STATE_SET);
 					}
 					else if (datagram.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_SAVEDONE) {
 						puts("SAVE Complete");
@@ -381,6 +381,8 @@ namespace CNU_DDS
 					Datagram.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_REQUEST;
 				}
 				
+				Datagram.PDD_HEADER.ID = PTNSP->key.TN_SPACE_ID;
+
 				Datagram.PDD_DATA[0].PARTICIPANT_NODE_TYPE = PTNSP->key.TN_SPACE_NODETYPE;
 
 				memcpy(Datagram.PDD_DATA[0].PARTICIPANT_DOMAIN_ID, PTNSP->key.TN_SPACE_DOMAIN, sizeof(PTNSP->key.TN_SPACE_DOMAIN));
