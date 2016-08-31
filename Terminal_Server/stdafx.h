@@ -36,12 +36,14 @@
 
 #define	FES_PORT				3000
 #define TERMINAL_PORT			3002	// 포트번호 할당
-#define DDS_PORT				4000
+#define DDS_PORT				3000
+
 
 using namespace std;
 
 // participantDataDistributor
 typedef struct _PDD_HEADER {
+	int					ID;
 	int					MESSAGE_TYPE;
 	int					NUMBER_OF_PARTICIPANT;
 } PDD_HEADER, *PPDD_HEADER;
