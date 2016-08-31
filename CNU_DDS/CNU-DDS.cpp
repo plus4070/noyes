@@ -47,7 +47,8 @@ int main()
 	//dataReaderTest();
 	//dataWriterTest();
 
-	StartReceving();
+	//StartReceving();
+	initalizeTNSServer();
 
 	return 0;
 }
