@@ -12,19 +12,17 @@ class RequestTable
 public:
 	RequestTable();
 	~RequestTable();
-	void				resetTable();
 
-	PR_NODE		r_head;
-
+	int							numOfRequests;
+	PR_NODE				r_head;
 	vector<_R_ENTRY>	requestList;
-	int					numOfRequests;
 
-	bool				isRequestExist();
-	PR_NODE				getLastEntry();
-	void				addEntry(IN_ADDR ip, PDD_NODE PDD_NODE);
-
+	void							resetTable();
+	bool							isRequestExist();														//Request 존재여부 확인
+	PR_NODE				getLastEntry();														//마지막 Entry 리턴
+	void							addEntry(IN_ADDR ip, PDD_NODE PDD_NODE);	//리스트에 Entry 추가
 
 private:
-	CRITICAL_SECTION cs;
+	CRITICAL_SECTION cs;																			//Semaphore 역할
 };
 

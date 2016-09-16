@@ -17,10 +17,9 @@ void	TopicNameTable::resetTable() {
 bool	TopicNameTable::isEntryExist(TN_ENTRY entry){
 	PTN_NODE currentNode = TN_head;
 
-	if (TN_head == NULL)
+	if (TN_head == NULL){
 		return false;
-	else //만약 한개라도 있으면 탐색 시작, 다음 Node는 있을수도 있고 없을 수 도 있음
-	{
+	} else { //만약 한개라도 있으면 탐색 시작, 다음 Node는 있을수도 있고 없을 수 도 있음
 		while (currentNode != NULL) {
 			if (strcmp(currentNode->key.TN_TOKEN, entry.TN_TOKEN) == 0 &&
 				strcmp(currentNode->key.TN_TOPIC, entry.TN_TOPIC) == 0 &&
@@ -39,21 +38,20 @@ bool	TopicNameTable::addEntry(TN_ENTRY entry){
 
 	newNode->key  = entry;
 	newNode->next = NULL;
-
-
-	if (isEntryExist(entry))
+	
+	if (isEntryExist(entry)) {
 		return false;
-
+	}
 	// Router entry에 추가
 	currentNode = TN_head;
 
 	if (TN_head == NULL) {
 		newNode->next = TN_head;
 		TN_head = newNode;
-	}
-	else {
-		while (currentNode->next != NULL)
+	} else {
+		while (currentNode->next != NULL) {
 			currentNode = currentNode->next;
+		}
 		newNode->next = currentNode->next;
 		currentNode->next = newNode;
 	}
@@ -62,15 +60,13 @@ bool	TopicNameTable::addEntry(TN_ENTRY entry){
 }
 
 bool	TopicNameTable::deleteEntry(TN_ENTRY entry){
-
 	return false;
 }
 
 bool	TopicNameTable::getEntry(TN_ENTRY *p_entry){
 	if (!isEntryExist(*p_entry)) {
 		return false;
-	}
-	else {
+	} else {
 		PTN_NODE currentNode = TN_head;
 		while (currentNode != NULL) {
 			if (strcmp(currentNode->key.TN_TOKEN, p_entry->TN_TOKEN) == 0 &&
@@ -85,7 +81,7 @@ bool	TopicNameTable::getEntry(TN_ENTRY *p_entry){
 	return false;
 }
 
-bool	TopicNameTable::setEntry(TN_ENTRY *p_entry){
+bool	TopicNameTable::setEntry(TN_ENTRY *p_entry) {
 	return false;
 }
 
@@ -94,8 +90,7 @@ void	TopicNameTable::testShowAll() {
 	puts("===============================================");
 	if (currentNode == NULL) {
 		printf("NULL\n");
-	}
-	else {
+	} else {
 		printf("%s\t%s\t%d\t%s\n", currentNode->key.TN_TOPIC, currentNode->key.TN_TOKEN, currentNode->key.TN_LEVEL, currentNode->key.TN_NEXTZONE);
 		while (currentNode->next != NULL) {
 			currentNode = currentNode->next;
@@ -104,6 +99,7 @@ void	TopicNameTable::testShowAll() {
 	}
 	puts("===============================================");
 }
+
 vector<string> TopicNameTable::splitTopic(const string & s) {
 	stringstream ss(s);
 	string item;

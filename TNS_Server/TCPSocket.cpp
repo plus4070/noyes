@@ -26,7 +26,7 @@ int TCPSocket::StartServer()
 	this->initialize();
 	TNTable->testShowAll();
 
-	while (1) {}
+	while (true) {}
 
 	CloseHandle(recvThread);
 	CloseHandle(sendThread);
@@ -49,8 +49,9 @@ void TCPSocket::initialize() {
 	printf("input>");
 	scanf("%d", &test_type);
 	
-	if(test_type == 2)
+	if(test_type == 2) {
 		inputDummyEntryToTNTable();
+	}
 
 	while (test_type == 1) {
 		printf("[ INPUT TOPIC NAME SPACE ENTRY ]\n\n");
@@ -90,19 +91,17 @@ void TCPSocket::ResetTCPSocket() {
 	this->recvQueue.clear();
 }
 
-
 /************************************
 /*
 /*	CompressSockets
-/*
+/*종료시킬 소켓연결을 소켓 핸들 배열에서 삭제
 */
 //void TCPSocket::CompressSockets(SOCKET* hSockArray, int omitIndex, int total)
 void CompressSockets(SOCKET* hSockArray, int omitIndex, int total)
 {
 	int i;
 
-	for (i = omitIndex; i<total; i++)
-	{
+	for (i = omitIndex; i<total; i++) {
 		hSockArray[i] = hSockArray[i + 1];
 	}
 }
@@ -110,15 +109,14 @@ void CompressSockets(SOCKET* hSockArray, int omitIndex, int total)
 /************************************
 /*
 /*	CompressEvents
-/*
+/*종료시킬 이벤트를 이벤트 배열에서 삭제
 */
 //void TCPSocket::CompressEvents(WSAEVENT* hEventArray, int omitIndex, int total)
 void CompressEvents(WSAEVENT* hEventArray, int omitIndex, int total)
 {
 	int i;
 
-	for (i = omitIndex; i<total; i++)
-	{
+	for (i = omitIndex; i<total; i++) {
 		hEventArray[i] = hEventArray[i + 1];
 	}
 }
@@ -126,7 +124,7 @@ void CompressEvents(WSAEVENT* hEventArray, int omitIndex, int total)
 /************************************
 /*
 /*	ErrorHandling
-/*
+/*예외출력 후 종료
 */
 //void TCPSocket::ErrorHandling(char *message)
 void ErrorHandling(char *message)
@@ -208,9 +206,9 @@ void TCPSocket::SaveRequests(IN_ADDR ip, PDD_NODE receiveData) {
 
 static UINT WINAPI sending(LPVOID p) {
 	TCPSocket *			tcpSocket = (TCPSocket*)p;
-	SOCKET				clientSocket;
-	SOCKADDR_IN			tempAddr;
-	vector<string>		tokenArray;
+	SOCKET					clientSocket;
+	SOCKADDR_IN		tempAddr;
+	vector<string>			tokenArray;
 
 	while (1) {
 		Sleep(10);
