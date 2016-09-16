@@ -100,7 +100,7 @@ static UINT WINAPI storing(LPVOID p) {
 	memset(&tempAddr, 0, sizeof(tempAddr));
 	tempAddr.sin_family = AF_INET;
 
-	while (1) {
+	while (true) {
 		memset(PDatagram, 0, sizeof(PDD_NODE));
 		memset(ReturnDatagram, 0, sizeof(PDD_NODE));
 
@@ -118,6 +118,7 @@ static UINT WINAPI storing(LPVOID p) {
 				continue;
 			}
 
+			// 메세지 타입이 저장, 수정, 삭제인 경우
 			if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_SAVE || entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_MODIFY || entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REMOVE) {
 				receiveData.TD_PARTICIPANT_IP.S_un.S_addr	= inet_addr(entry.PDD_DATA[0].PARTICIPANT_IP);
 				receiveData.TD_PUBSUBTYPE					= entry.PDD_DATA[0].PARTICIPANT_NODE_TYPE;
@@ -210,15 +211,14 @@ static UINT WINAPI storing(LPVOID p) {
 
 				printf("Sending to %s..... \n", (*it).PARTICIPANT_IP);
 
-				if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+				if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR) {
 					ErrorHandling("connect() error!");
-
+				}
 				send(ClientSocket, (const char *)PDatagram, sizeof(_PDD_NODE), 0);
 
 				closesocket(ClientSocket);
 
 				printf("Complete ..... \n");
-
 
 				/*
 				if (entry.TNSN_NODETYPE != (*it).second.PARTICIPANT_NODE_TYPE) {
@@ -265,9 +265,9 @@ static UINT WINAPI storing(LPVOID p) {
 
 			printf("Sending to %s..... \n", entry.PDD_DATA[0].PARTICIPANT_IP);
 
-			if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+			if (connect(ClientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR) {
 				ErrorHandling("connect() error!");
-
+			}
 			send(ClientSocket, (const char *)ReturnDatagram, sizeof(_PDD_NODE), 0);
 
 			closesocket(ClientSocket);
@@ -387,9 +387,9 @@ static UINT WINAPI receiving(LPVOID p) {
 		{
 			index = WSAWaitForMultipleEvents(1, &eventArray[i], TRUE, 0, FALSE);
 
-			if ((index == WSA_WAIT_FAILED || index == WSA_WAIT_TIMEOUT)) continue;
-			else
-			{
+			if ((index == WSA_WAIT_FAILED || index == WSA_WAIT_TIMEOUT)) {
+				continue;
+			} else {
 				index = i;
 				WSAEnumNetworkEvents(sockArray[index], eventArray[index], &netEvents);
 
@@ -431,10 +431,8 @@ static UINT WINAPI receiving(LPVOID p) {
 
 
 				// 데이터 전송해올 경우.
-				if (netEvents.lNetworkEvents & FD_READ)
-				{
-					if (netEvents.iErrorCode[FD_READ_BIT] != 0)
-					{
+				if (netEvents.lNetworkEvents & FD_READ) {
+					if (netEvents.iErrorCode[FD_READ_BIT] != 0) {
 						puts("Read Error");
 						break;
 					}
@@ -468,10 +466,8 @@ static UINT WINAPI receiving(LPVOID p) {
 
 
 				// 연결 종료 요청의 경우.
-				if (netEvents.lNetworkEvents & FD_CLOSE)
-				{
-					if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0)
-					{
+				if (netEvents.lNetworkEvents & FD_CLOSE) {
+					if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0) {
 						puts("Close Error");
 						break;
 					}

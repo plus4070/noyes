@@ -22,20 +22,20 @@ public:
 	bool				addTopic2(T_ENTRY entry);
 
 	bool				addEntry(T_ENTRY entry);
-	bool				addEntryToDomain(T_ENTRY entry);
-	bool				addEntryToTopic(T_ENTRY entry, DOMAIN_ENTRY * domainNode);
-	bool				addEntryToParticipant(T_ENTRY entry, TOPIC_ENTRY * topicNode);
+	bool				addEntryToDomain(T_ENTRY entry);		//<도메인을 엔트리에 등록
+	bool				addEntryToTopic(T_ENTRY entry, DOMAIN_ENTRY * domainNode);		//<토픽을 엔트리에 등록
+	bool				addEntryToParticipant(T_ENTRY entry, TOPIC_ENTRY * topicNode);		//<참가자를 엔트리에 등록
 
 	bool				deleteTopic(T_ENTRY entry);
 	
 	bool				isDomainExist(char * domain);
 	bool				isTopicExist(char * topic, TOPIC_ENTRY * topicNode);
-	int					isParticipantExist(PARTICIPANT_ENTRY participant, list<PARTICIPANT_ENTRY> list);
+	int				isParticipantExist(PARTICIPANT_ENTRY participant, list<PARTICIPANT_ENTRY> list);
 
 	void				resetModifyFlag();
 	bool				isTableModified();
 
-	int					getAllModifiedData(PDD_DATA dataArray[MAX_PDD_NUMBER]);
+	int				getAllModifiedData(PDD_DATA dataArray[MAX_PDD_NUMBER]);
 	void				test_showAllEntry();
 
 	vector<IN_ADDR>		getAllAddressList();

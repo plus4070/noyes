@@ -23,7 +23,7 @@ bool TerminalTable::addEntry(T_ENTRY entry) {
 bool	TerminalTable::addEntryToDomain(T_ENTRY entry) {
 	bool isChanged;
 
-	if (this->d_head != NULL && isDomainExist(entry.TD_DOMAIN)) {
+	if (this->d_head != NULL && isDomainExist(entry.TD_DOMAIN)) {		//도메인이 존재할 때
 		PDOMAIN_ENTRY currDomain = this->d_head;
 		while (strcmp(currDomain->TD_DOMAIN, entry.TD_DOMAIN)) {
 			currDomain = currDomain->next;
@@ -35,7 +35,7 @@ bool	TerminalTable::addEntryToDomain(T_ENTRY entry) {
 		if (this->isModifyEntryExist == false)
 			this->isModifyEntryExist = isChanged;
 	}
-	else {
+	else {	//도메인이 존재하지 않을 때
 		PDOMAIN_ENTRY newNode = (PDOMAIN_ENTRY)malloc(sizeof(DOMAIN_ENTRY));
 
 		memcpy(newNode->TD_DOMAIN, entry.TD_DOMAIN, MAX_CHAR);
