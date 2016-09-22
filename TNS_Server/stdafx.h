@@ -25,9 +25,15 @@
 #define MESSAGE_TYPE_REMOVEDONE		21
 #define MESSAGE_TYPE_MODIFYDONE		22
 
+#define MESSAGE_ERROR_WSA_STARTUP	"WSAStartup() error"
+#define MESSAGE_ERROR_WSA_SELECT	"WSAEventSelect() error"
+#define MESSAGE_ERROR_BIND					"bind() error"
+#define MESSAGE_ERROR_SOCKET				"socket() error"
+#define MESSAGE_ERROR_LISTEN				"listen() error"
+
 #define NODE_TYPE_PUB								100
 #define NODE_TYPE_SUB								200
-#define BUFSIZE												100		// 받아올 데이터 최대 크기
+#define BUFSIZE												100			// 받아올 데이터 최대 크기
 #define FES_PORT											3000		// 포트번호 할당
 #define TNS_PORT											3001
 #define TERMINAL_PORT								3002

@@ -48,7 +48,7 @@ private:
 	//void ErrorHandling(char *message);
 	
 	//구현 함수
-	void		 inputDummyEntryToTNTable();
+	void		inputDummyEntryToTNTable();
 
 public:
 	int		StartServer();
