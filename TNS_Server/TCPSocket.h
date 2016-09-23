@@ -36,6 +36,9 @@ public:
 	deque<PDD_NODE>		recvQueue;
 
 private:
+	//상수 집함
+	static const int FirstIndex = 0;
+
 	// 변수 선언	
 	WSADATA						 wsaData;
 	SOCKET							 hServSock;	//서버 소켓
@@ -54,10 +57,6 @@ private:
 	int		index, i;
 	char		message[BUFSIZE];
 	int		strLen;
-
-	//void CompressSockets(SOCKET* hSockArray, int omitIndex, int total);
-	//void CompressEvents(WSAEVENT* hEventArray, int omitIndex, int total);
-	//void ErrorHandling(char *message);
 	
 	//구현 함수
 	void		inputDummyEntryToTNTable();
