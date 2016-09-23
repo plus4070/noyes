@@ -1,6 +1,7 @@
 #pragma once
 #include <WinSock2.h>
 
+#define SLEEP_TIME_SHORT							10
 #define MAX_CHAR										100
 #define MAX_DATA_SIZE								800
 #define MAX_PDD_NUMBER						25
@@ -24,12 +25,6 @@
 #define MESSAGE_TYPE_SAVEDONE			20
 #define MESSAGE_TYPE_REMOVEDONE		21
 #define MESSAGE_TYPE_MODIFYDONE		22
-
-#define MESSAGE_ERROR_WSA_STARTUP	"WSAStartup() error"
-#define MESSAGE_ERROR_WSA_SELECT	"WSAEventSelect() error"
-#define MESSAGE_ERROR_BIND					"bind() error"
-#define MESSAGE_ERROR_SOCKET				"socket() error"
-#define MESSAGE_ERROR_LISTEN				"listen() error"
 
 #define NODE_TYPE_PUB								100
 #define NODE_TYPE_SUB								200

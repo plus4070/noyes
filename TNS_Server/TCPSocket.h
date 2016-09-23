@@ -14,6 +14,18 @@ using namespace std;
 #pragma comment(lib,"wsock32.lib")
 #pragma comment(lib, "ws2_32.lib")
 
+#define MESSAGE_ERROR_WSA_STARTUP	"WSAStartup() error"
+#define MESSAGE_ERROR_WSA_SELECT	"WSAEventSelect() error"
+#define MESSAGE_ERROR_BIND					"bind() error"
+#define MESSAGE_ERROR_SOCKET				"socket() error"
+#define MESSAGE_ERROR_LISTEN				"listen() error"
+
+#define TOPIC_NAME_FULL							"A/BB/CCC/DDDD/EEEEEE"
+#define TOPIC_NAME_1								"A"
+#define TOPIC_NAME_2								"BB"
+#define TOPIC_NAME_3								"CCC"
+#define TOPIC_NAME_4								"DDDD"
+#define TOPIC_NAME_5								"EEEEE"
 
 class TCPSocket
 {
