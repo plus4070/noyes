@@ -4,6 +4,15 @@
 
 static UINT WINAPI Sending(LPVOID p);
 static UINT WINAPI Receiving(LPVOID p);
+static void CheckEntry(TCPSocket * tcpSocket, PDD_NODE entry, TN_ENTRY TE);
+static SOCKET CreateSocket();
+static void BindingSocket(SOCKET servSocket);
+static void LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
+static void OpenConnection(vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
+	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, int index, int sockTotal);
+static void TransferData(LPVOID p, SOCKET * sockArray, int index);
+static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
+	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, SOCKET * sockArray, WSAEVENT * eventArray, int index);
 void ErrorHandling(char *message);
 
 TCPSocket::TCPSocket()
@@ -26,7 +35,6 @@ int TCPSocket::StartServer()
 	this->initialize();
 	TNTable->testShowAll();
 
-	//Thread 종료 전, 메인 Thead의 종료를 막기위한 Loop
 	while (true) {}
 
 	CloseHandle(recvThread);
@@ -50,9 +58,8 @@ void TCPSocket::initialize() {
 	printf("input>");
 	scanf("%d", &test_type);
 	
-	if(test_type == 2) {
+	if(test_type == 2)
 		inputDummyEntryToTNTable();
-	}
 
 	while (test_type == 1) {
 		printf("[ INPUT TOPIC NAME SPACE ENTRY ]\n\n");
@@ -95,7 +102,7 @@ void TCPSocket::ResetTCPSocket() {
 /************************************
 /*
 /*	ErrorHandling
-/*예외출력 후 종료
+/*
 */
 //void TCPSocket::ErrorHandling(char *message)
 void ErrorHandling(char *message)
@@ -137,7 +144,6 @@ void TCPSocket::inputDummyEntryToTNTable() {
 	TNTable->testShowAll();
 }
 
-//안쓰임
 void TCPSocket::Response() {
 	TN_ENTRY TE;
 	//저장된 RequestTable에서 꺼내와서 데이터 송신
@@ -153,13 +159,17 @@ void TCPSocket::Response() {
 				TNTable->getEntry(&TE);
 				memcpy(entry.PDD_DATA[0].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
 				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_RESPONSE;
-			} else {
+			}
+			else {
 				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
 			}
 
 			cout << "Response TOKEN :" << TE.TN_TOKEN << "/" << TE.TN_NEXTZONE << endl;
 			cout << "Response ADDRESS :" << entry.PDD_DATA[0].PARTICIPANT_DATA << endl;
 		}
+
+		// 에코(데이터를준 클라이언트에 다시 데이터쏘기)
+		//send(hSockArray[index - WSA_WAIT_EVENT_0], (char*)&entry, sizeof(entry), 0);
 
 		cout << "=============================================" << endl;
 	}
@@ -185,21 +195,21 @@ static UINT WINAPI Sending(LPVOID p) {
 
 			//메세지 타입 REQUEST일 경우
 			if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REQUEST) {
-				tokenArray = tcpSocket->TNTable->splitTopic(entry.PDD_DATA[FirstIndex].PARTICIPANT_TOPIC);
-				
+				tokenArray = tcpSocket->TNTable->splitTopic(entry.PDD_DATA[FIRST_INDEX].PARTICIPANT_TOPIC);
+
 				//수신 메시지 출력
 				cout << "Request MSG" << endl;
-				cout << "Request Topic :" << entry.PDD_DATA[FirstIndex].PARTICIPANT_TOPIC << endl;
-				cout << "Request TokenLevel :" << entry.PDD_DATA[FirstIndex].PARTICIPANT_DATA << endl;
+				cout << "Request Topic :" << entry.PDD_DATA[FIRST_INDEX].PARTICIPANT_TOPIC << endl;
+				cout << "Request TokenLevel :" << entry.PDD_DATA[FIRST_INDEX].PARTICIPANT_DATA << endl;
 				cout << "Request TYPE :" << entry.PDD_HEADER.MESSAGE_TYPE << endl;
 
-				TE.TN_LEVEL = atoi(entry.PDD_DATA[FirstIndex].PARTICIPANT_DATA);
-				
-				memcpy(TE.TN_TOPIC, entry.PDD_DATA[FirstIndex].PARTICIPANT_TOPIC, MAX_CHAR);
+				TE.TN_LEVEL = atoi(entry.PDD_DATA[FIRST_INDEX].PARTICIPANT_DATA);
+
+				memcpy(TE.TN_TOPIC, entry.PDD_DATA[FIRST_INDEX].PARTICIPANT_TOPIC, MAX_CHAR);
 				memcpy(TE.TN_TOKEN, tokenArray.at(TE.TN_LEVEL - 1).c_str(), MAX_CHAR);
 
 				//Entry존재여부에 따라 Message Type 변경해줌
-				CheckEntry(tcpSocket, entry);
+				CheckEntry(tcpSocket, entry, TE);
 			}
 
 			clientSocket = socket(PF_INET, SOCK_STREAM, 0);
@@ -208,7 +218,7 @@ static UINT WINAPI Sending(LPVOID p) {
 				ErrorHandling("clientSocket() error");
 			}
 
-			memset(&tempAddr, FirstIndex, sizeof(tempAddr));
+			memset(&tempAddr, FIRST_INDEX, sizeof(tempAddr));
 			tempAddr.sin_family = AF_INET;
 			tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(PN->key.REQUEST_IP));
 			tempAddr.sin_port = htons(FES_PORT);
@@ -229,12 +239,12 @@ static UINT WINAPI Sending(LPVOID p) {
 	}
 }
 
-static void CheckEntry(TCPSocket * tcpSocket, PDD_NODE entry) {
+static void CheckEntry(TCPSocket * tcpSocket, PDD_NODE entry, TN_ENTRY TE) {
 	if (tcpSocket->TNTable->isEntryExist(TE)) {
 		tcpSocket->TNTable->getEntry(&TE);
-		memcpy(entry.PDD_DATA[FirstIndex].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
+		memcpy(entry.PDD_DATA[FIRST_INDEX].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
 		entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_RESPONSE;
-		printf("%s", entry.PDD_DATA[FirstIndex].PARTICIPANT_DATA);
+		printf("%s", entry.PDD_DATA[FIRST_INDEX].PARTICIPANT_DATA);
 
 		cout << "RESPONSE" << endl;
 	}
@@ -244,13 +254,14 @@ static void CheckEntry(TCPSocket * tcpSocket, PDD_NODE entry) {
 	}
 }
 
+
 static SOCKET CreateSocket() {
 	// 소켓 생성 (성공시 핸들을, 실패시 "INVALID_SOCKET" 반환)
 	SOCKET servSock = socket(PF_INET, SOCK_STREAM, 0);
 
 	// 소켓 생성 실패 처리
 	if (servSock == INVALID_SOCKET) {
-		ErrorHandling(MESSAGE_ERROR_SOCKET);
+		ErrorHandling("socket() error");
 	}
 
 	return servSock;
@@ -266,24 +277,25 @@ static void BindingSocket(SOCKET servSocket){
 
 	// 주소와 Port 할당 (바인드!!)
 	if (bind(servSocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) == SOCKET_ERROR) {
-		ErrorHandling(MESSAGE_ERROR_BIND);
+		ErrorHandling("bind() error");
 	}
 
 }
-
 static void LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
+//static void LinkingEvents(SOCKET servSock, int* sockNum, SOCKET sockArray[WSA_MAXIMUM_WAIT_EVENTS], WSAEVENT eventArray[WSA_MAXIMUM_WAIT_EVENTS]) {
 	// 이벤트 발생을 확인 (성공시 0, 실패시 "SOCKET_ERROR" 반환)
 	vector<SOCKET>::iterator sVec_it;
 	vector<WSAEVENT>::iterator eVec_it;
 
 	WSAEVENT newEvent = WSACreateEvent();
 	if (WSAEventSelect(servSock, newEvent, FD_ACCEPT) == SOCKET_ERROR) {
-		ErrorHandling(MESSAGE_ERROR_WSA_SELECT);
+		ErrorHandling("WSAEventSelect() error");
 	}
+
 
 	// 연결 대기 요청 상태로의 진입 (신호가 들어올때까지 대기)
 	if (listen(servSock, 5) == SOCKET_ERROR) {
-		ErrorHandling(MESSAGE_ERROR_LISTEN);
+		ErrorHandling("listen() error");
 	}
 	
 	sVec_it = sockArray->begin() + *sockNum;
@@ -304,7 +316,7 @@ static UINT WINAPI Receiving(LPVOID p) {
 
 	vector<SOCKET> hSockArray; //소켓 핸들배열 - 연결 요청이 들어올 때마다 생성되는 소켓의 핸들을 이 배열에 저장. (최대64)
 	vector<WSAEVENT> hEventArray; //이벤트 벡터
-	
+
 	SOCKET * sockArray;
 	WSAEVENT * eventArray;
 	vector<SOCKET>::iterator sVec_it;
@@ -321,39 +333,42 @@ static UINT WINAPI Receiving(LPVOID p) {
 	LinkingEvents(hServSock, &sockTotal, &hSockArray, &hEventArray);
 
 	// 루프
-	while (true)	{
-		sockArray = &hSockArray[FirstIndex];
-		eventArray = &hEventArray[FirstIndex];
+	while (true) {
+		sockArray = &hSockArray[FIRST_INDEX];
+		eventArray = &hEventArray[FIRST_INDEX];
 
 		// 이벤트 종류 구분하기(WSAWaitForMultipleEvents)
 		index = WSAWaitForMultipleEvents(sockTotal, eventArray, FALSE, WSA_INFINITE, FALSE);
 		index = index - WSA_WAIT_EVENT_0;
 
 		for (i = index; i < sockTotal; i++) {
-			index = WSAWaitForMultipleEvents(1, &eventArray[i], TRUE, FirstIndex, FALSE);
+			index = WSAWaitForMultipleEvents(1, &eventArray[i], TRUE, FIRST_INDEX, FALSE);
 
 			if ((index == WSA_WAIT_FAILED || index == WSA_WAIT_TIMEOUT)) {
 				continue;
-			} else {
+			}
+			else {
 				index = i;
 				WSAEnumNetworkEvents(sockArray[index], eventArray[index], &netEvents);
-								
+
 				if (netEvents.lNetworkEvents & FD_ACCEPT) { // 초기 연결 요청의 경우.
 					if (netEvents.iErrorCode[FD_ACCEPT_BIT] != 0) {
 						puts("Accept Error");
 						break;
 					}
-					OpenConnection(hSockArray, hEventArray, sVec_it, eVec_it, index);
+					OpenConnection(hSockArray, hEventArray, sVec_it, eVec_it, index, sockTotal);
 					sockTotal++;
-					
-				} else if (netEvents.lNetworkEvents & FD_READ) { // 데이터 전송해올 경우.
+
+				}
+				else if (netEvents.lNetworkEvents & FD_READ) { // 데이터 전송해올 경우.
 					if (netEvents.iErrorCode[FD_READ_BIT] != 0) {
 						puts("Read Error");
 						break;
 					}
-					TransferData(p, &sockArray, index);
-				} else if (netEvents.lNetworkEvents & FD_CLOSE) { 	// 연결 종료 요청의 경우.
-					if (!CloseConnection(netEvents, hSockArray, hEventArray, sVec_it, eVec_it, &eventArray, index)) {
+					TransferData(p, sockArray, index);
+				}
+				else if (netEvents.lNetworkEvents & FD_CLOSE) { 	// 연결 종료 요청의 경우.
+					if (!CloseConnection(netEvents, hSockArray, hEventArray, sVec_it, eVec_it, sockArray, eventArray, index)) {
 						break;
 					}
 					sockTotal--;
@@ -362,14 +377,14 @@ static UINT WINAPI Receiving(LPVOID p) {
 		}//for
 	}//while
 
-	// 할당 받은 리소스 반환.
+	 // 할당 받은 리소스 반환.
 	WSACleanup();
 
 	return 0;
 }
 
-static bool OpenConnection(vector<SOCKET> &hSockArray, vector<SOCKET> &hEventArray, 
-	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, int index) {
+static void OpenConnection(vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
+	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, int index, int sockTotal) {
 	WSAEVENT newEvent;
 
 	SOCKET hClntSock;
@@ -399,7 +414,7 @@ static bool OpenConnection(vector<SOCKET> &hSockArray, vector<SOCKET> &hEventArr
 	printf("array  size : %d\n", sockTotal);
 }
 
-static bool TransferData(LPVOID p, SOCKET * sockArray, int index) {
+static void TransferData(LPVOID p, SOCKET * sockArray, int index) {
 	TCPSocket * tcpSocket = (TCPSocket*)p;
 	// 데이터를 받음 (message에 받은 데이터를 담음)
 	PDD_NODE	receiveData;
@@ -419,7 +434,7 @@ static bool TransferData(LPVOID p, SOCKET * sockArray, int index) {
 	}
 }
 
-static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> &hSockArray, vector<SOCKET> &hEventArray, 
+static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
 	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, SOCKET * sockArray, WSAEVENT * eventArray, int index) {
 	if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0) {
 		puts("Close Error");
