@@ -8,11 +8,10 @@ static void CheckEntry(TCPSocket * tcpSocket, PDD_NODE entry, TN_ENTRY TE);
 static SOCKET CreateSocket();
 static void BindingSocket(SOCKET servSocket);
 static void LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
-static void OpenConnection(vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
-	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, int index, int sockTotal);
+
+static void OpenConnection(vector<SOCKET> * hSockArray, vector<WSAEVENT> * hEventArray, int index, int sockTotal);
 static void TransferData(LPVOID p, SOCKET * sockArray, int index);
-static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
-	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, SOCKET * sockArray, WSAEVENT * eventArray, int index);
+static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> * hSockArray, vector<WSAEVENT> * hEventArray, SOCKET * sockArray, WSAEVENT * eventArray, int index);
 void ErrorHandling(char *message);
 
 TCPSocket::TCPSocket()
@@ -319,8 +318,6 @@ static UINT WINAPI Receiving(LPVOID p) {
 
 	SOCKET * sockArray;
 	WSAEVENT * eventArray;
-	vector<SOCKET>::iterator sVec_it;
-	vector<WSAEVENT>::iterator eVec_it;
 
 	int sockTotal = 0;
 	int index, i;
@@ -356,7 +353,7 @@ static UINT WINAPI Receiving(LPVOID p) {
 						puts("Accept Error");
 						break;
 					}
-					OpenConnection(hSockArray, hEventArray, sVec_it, eVec_it, index, sockTotal);
+					OpenConnection(&hSockArray, &hEventArray, index, sockTotal);
 					sockTotal++;
 
 				}
@@ -368,7 +365,7 @@ static UINT WINAPI Receiving(LPVOID p) {
 					TransferData(p, sockArray, index);
 				}
 				else if (netEvents.lNetworkEvents & FD_CLOSE) { 	// 연결 종료 요청의 경우.
-					if (!CloseConnection(netEvents, hSockArray, hEventArray, sVec_it, eVec_it, sockArray, eventArray, index)) {
+					if (!CloseConnection(netEvents, &hSockArray, &hEventArray, sockArray, eventArray, index)) {
 						break;
 					}
 					sockTotal--;
@@ -383,9 +380,11 @@ static UINT WINAPI Receiving(LPVOID p) {
 	return 0;
 }
 
-static void OpenConnection(vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
-	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, int index, int sockTotal) {
+static void OpenConnection(vector<SOCKET> * hSockArray, vector<WSAEVENT> * hEventArray, int index, int sockTotal) {
 	WSAEVENT newEvent;
+
+	vector<SOCKET>::iterator sVec_it;
+	vector<WSAEVENT>::iterator eVec_it;
 
 	SOCKET hClntSock;
 	SOCKADDR_IN clntAddr;
@@ -395,7 +394,7 @@ static void OpenConnection(vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventA
 	clntLen = sizeof(clntAddr);
 
 	// 연결을 수락 (accept | 성공시 소켓핸들, 실패시 "INVALID_SOCKET" 반환)
-	hClntSock = accept(hSockArray.at(index), (SOCKADDR*)&clntAddr, &clntLen);
+	hClntSock = accept(hSockArray->at(index), (SOCKADDR*)&clntAddr, &clntLen);
 
 	// 이벤트 커널 오브젝트 생성(WSACreateEvent)
 	newEvent = WSACreateEvent();
@@ -403,14 +402,14 @@ static void OpenConnection(vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventA
 	// 이벤트 발생 유무 확인(WSAEventSelect)
 	WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
 
-	sVec_it = hSockArray.begin() + sockTotal;
-	eVec_it = hEventArray.begin() + sockTotal;
+	sVec_it = hSockArray->begin() + sockTotal;
+	eVec_it = hEventArray->begin() + sockTotal;
 
-	hSockArray.insert(sVec_it, hClntSock);
-	hEventArray.insert(eVec_it, newEvent);
+	hSockArray->insert(sVec_it, hClntSock);
+	hEventArray->insert(eVec_it, newEvent);
 
 	printf("새로 연결된 소켓의 핸들 %d \n", hClntSock);
-	printf("vector size = %d\n", hSockArray.size());
+	printf("vector size = %d\n", hSockArray->size());
 	printf("array  size : %d\n", sockTotal);
 }
 
@@ -434,8 +433,11 @@ static void TransferData(LPVOID p, SOCKET * sockArray, int index) {
 	}
 }
 
-static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> &hSockArray, vector<WSAEVENT> &hEventArray,
-	vector<SOCKET>::iterator &sVec_it, vector<WSAEVENT>::iterator &eVec_it, SOCKET * sockArray, WSAEVENT * eventArray, int index) {
+static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> * hSockArray, vector<WSAEVENT> * hEventArray, SOCKET * sockArray, WSAEVENT * eventArray, int index) {
+
+	vector<SOCKET>::iterator sVec_it;
+	vector<WSAEVENT>::iterator eVec_it;
+
 	if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0) {
 		puts("Close Error");
 		return false;
@@ -449,9 +451,9 @@ static bool CloseConnection(WSANETWORKEVENTS netEvents, vector<SOCKET> &hSockArr
 
 	// 배열 정리.
 	printf("삭제 : %d\n", index);
-	sVec_it = hSockArray.begin() + index;
-	hSockArray.erase(sVec_it);
+	sVec_it = hSockArray->begin() + index;
+	hSockArray->erase(sVec_it);
 
-	eVec_it = hEventArray.begin() + index;
-	hEventArray.erase(eVec_it);
+	eVec_it = hEventArray->begin() + index;
+	hEventArray->erase(eVec_it);
 }
