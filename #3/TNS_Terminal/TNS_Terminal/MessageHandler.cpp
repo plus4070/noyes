@@ -13,7 +13,7 @@ void				MessageHandler::setPDDNode(PDD_NODE *PN) {
 }
 
 
-void				MessageHandler::addDataToNode(PDD_NODE *PN, PDD_DATA PD) {
+void				MessageHandler::addDataToNode(PPDD_NODE PN, PDD_DATA PD) {
 	memcpy(&(PN->PDD_DATA[PN->PDD_HEADER.NUMBER_OF_PARTICIPANT]), &PD, sizeof(PDD_DATA));
 	PN->PDD_HEADER.NUMBER_OF_PARTICIPANT++;
 }

@@ -26,8 +26,8 @@ void			 				SocketManager::setCriticalSection(CRITICAL_SECTION * criticlaSection
 	this->cs = *criticlaSection;
 }
 
-void  							SocketManager::getRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> * dq) {
-	*dq = this->recvData;
+void  							SocketManager::getRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> ** dq) {
+	*dq = &(this->recvData);
 }
 
 void							SocketManager::setUIView() {
@@ -108,7 +108,6 @@ void 							SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<S
 		puts("WSAEventSelect() error");
 	}
 
-
 	// 연결 대기 요청 상태로의 진입 (신호가 들어올때까지 대기)
 	if (listen(servSock, 5) == SOCKET_ERROR) {
 		puts("listen() error");
@@ -148,16 +147,13 @@ bool							SocketManager::closeConnection() {
 }
 
 void							SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) {
-	vector<SOCKET>::iterator sVec_it;
-	vector<WSAEVENT>::iterator eVec_it;
-
-	sVec_it = SocketArray->begin() + *idx;
-	eVec_it = EventArray->begin() + *idx;
+	vector<SOCKET>::iterator	sVec_it = SocketArray->begin() + *idx;
+	vector<WSAEVENT>::iterator	eVec_it = EventArray->begin()  + *idx;
 
 	SocketArray->insert(sVec_it, s);
 	EventArray->insert(eVec_it, Event);
 
-	*idx++;
+	(*idx)++;
 }
 
 void							SocketManager::deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
@@ -192,22 +188,21 @@ void SocketManager::AcceptProc(int idx, int * totalSocket, vector<SOCKET> * Sock
 	printf("array  size : %d\n", *totalSocket);
 }
 
-PDD_NODE SocketManager::ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
+PDD_NODE SocketManager::ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr) {
 
 	PDD_NODE			receiveData;
-	struct sockaddr_in	name;
-	int					len		= sizeof(name);
+	int					len		= sizeof( * addr);
 
 	*strLen = recv(SocketArray->at(idx - WSA_WAIT_EVENT_0), (char*)&receiveData, sizeof(receiveData), 0);
 
-	if (getpeername(SocketArray->at(idx - WSA_WAIT_EVENT_0), (struct sockaddr *)&name, &len) != 0) {
+	if (getpeername(SocketArray->at(idx - WSA_WAIT_EVENT_0), (struct sockaddr *)addr, &len) != 0) {
 		perror("getpeername Error");
 	}				
 	
 	return receiveData;
 }
 
-void SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
+void	SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
 
 	WSACloseEvent(EventArray->at(idx));
 
@@ -215,7 +210,7 @@ void SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * Socke
 	closesocket(SocketArray->at(idx));
 	printf("종료 된 소켓의 핸들 %d \n", SocketArray->at(idx));
 
-	*totalSocket--;
+	(*totalSocket)--;
 
 	// 배열 정리.
 	printf("삭제 : %d\n", idx);
@@ -223,9 +218,9 @@ void SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * Socke
 	deleteSocketEvent(&idx, SocketArray, EventArray);
 }
 
-void SocketManager::savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>>	* dq, PDD_NODE pn, sockaddr_in addr) {
+void SocketManager::savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>>	* dq, PDD_NODE * pn, sockaddr_in addr) {
 	EnterCriticalSection(cs);
-	dq->push_front(make_pair(addr.sin_addr, pn));
+	dq->push_front(make_pair(addr.sin_addr, *pn));
 	LeaveCriticalSection(cs);
 }
 
@@ -257,9 +252,6 @@ static							 UINT WINAPI receiving(LPVOID p) {
 
 	SOCKET * sockArray;
 	WSAEVENT * eventArray;
-	vector<SOCKET>::iterator sVec_it;
-	vector<WSAEVENT>::iterator eVec_it;
-
 	// 루프
 	while (true)
 	{
@@ -290,20 +282,29 @@ static							 UINT WINAPI receiving(LPVOID p) {
 
 					manager->AcceptProc(index, &sockTotal, &hSockArray, &hEventArray);
 					
-				} else if (netEvents.lNetworkEvents & FD_READ) {
+				} 
+
+				if (netEvents.lNetworkEvents & FD_READ) {
+
 					if (netEvents.iErrorCode[FD_READ_BIT] != 0) {
 						puts("Read Error");
 						break;
 					}
 
-					receiveData = manager->ReadProc(index, &strLen,&hSockArray, &hEventArray);
+					receiveData = manager->ReadProc(index, &strLen, &hSockArray, &hEventArray, &name);
+
+					printf("%s", inet_ntoa(name.sin_addr));
 
 					if (strLen != -1) {
-						manager->savePacketToDeque(&(manager->cs), &(manager->recvData), receiveData, name);
+						manager->savePacketToDeque(&(manager->cs), &(manager->recvData), &receiveData, name);
 					}
 
-				} else if (netEvents.lNetworkEvents & FD_CLOSE) {
-					
+					puts("Saved");
+
+				} 
+
+				if (netEvents.lNetworkEvents & FD_CLOSE) {
+					puts("close socket");
 					if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0) {
 						puts("Close Error");
 						break;
@@ -315,6 +316,8 @@ static							 UINT WINAPI receiving(LPVOID p) {
 		}
 	}
 	
+	puts("close");
+
 	WSACleanup();
 
 	return 0;

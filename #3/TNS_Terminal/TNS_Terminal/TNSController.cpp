@@ -3,7 +3,6 @@
 TNSController::TNSController()
 {
 	initalizeSetting();
-	startTNSServer();
 }
 
 
@@ -13,14 +12,15 @@ TNSController::~TNSController()
 	DeleteCriticalSection(&cs);
 }
 
-//controller
 void 							TNSController::initalizeSetting() {
 	this->socketManager = new SocketManager();
 	this->databaseManager = new DBManager();
 	this->messageHandler = new MessageHandler();
 
 	this->databaseManager->initDBInfo();
-
+	
+	inputDummyDataToDB();
+	
 	InitializeCriticalSection(&cs);
 	this->socketManager->setCriticalSection(&cs);
 }
@@ -28,6 +28,7 @@ void 							TNSController::initalizeSetting() {
 void							TNSController::startTNSServer() {
 	this->socketManager->getRecevingDEQUE(&(this->recvData));
 	this->socketManager->startRecevingThread();
+	this->distibuteTNSData();
 }
 
 void							TNSController::closeTNSServer() {
@@ -49,7 +50,7 @@ void							TNSController::distibuteTNSData() {
 		Sleep(10);
 
 		while (isReceviedDataExist()) {
-			PDD_NODE entry = recvData.back().second;
+			PDD_NODE entry = recvData->back().second;
 
 			if (messageHandler->isPacketAvailable(&entry)) {
 				if (!this->databaseManager->isTopicExist(entry.PDD_DATA[0].PARTICIPANT_TOPIC)) {
@@ -70,103 +71,145 @@ void							TNSController::distibuteTNSData() {
 				puts("ERROR MSG TYPE");
 			}
 
-			socketManager->sendPacket(inet_ntoa(recvData.back().first), (char *)&entry, sizeof(_PDD_NODE), FES_PORT);
+			socketManager->sendPacket(inet_ntoa(recvData->back().first), (char *)&entry, sizeof(_PDD_NODE), FES_PORT);
 
-			NumOfParticipant = 0;
 			for (it = distributeList.begin(); it != distributeList.end(); ++it) {
-				//printf("To : %s || Data : %s / %s / %s / %s / %d / %s\n", (*it).PARTICIPANT_IP, (*it).PARTICIPANT_NODE_TYPE == NODE_TYPE_PUB ? "PUB" : "SUB",
-				//	(*it).PARTICIPANT_TOPIC, (*it).PARTICIPANT_DOMAIN_ID, (*it).PARTICIPANT_IP, (*it).PARTICIPANT_PORT, (*it).PARTICIPANT_DATA);
-
 				messageHandler->addDataToNode(ReturnDatagram, *it);
-
-				//ReturnDatagram->PDD_DATA[NumOfParticipant++] = (*it);
-
-				// Send New Participant Data to Existing Participant
 				socketManager->sendPacket((*it).PARTICIPANT_IP, (const char *)PDatagram, sizeof(_PDD_NODE), DDS_PORT);
 			}
 
-			//Send Existing Particiant Data To New Participant
-			messageHandler->setParticipantNumber(ReturnDatagram, NumOfParticipant);
-			//ReturnDatagram->PDD_HEADER.NUMBER_OF_PARTICIPANT = NumOfParticipant;
-
 			socketManager->sendPacket(entry.PDD_DATA[0].PARTICIPANT_IP, (const char *)ReturnDatagram, sizeof(_PDD_NODE), DDS_PORT);
 
-			//Remove Receive Data
 			EnterCriticalSection(&cs);
-			recvData.pop_back();
+			recvData->pop_back();
 			LeaveCriticalSection(&cs);
 		}
 	}
 }
-/*
-void							TNSController::distibuteTNSData() {
-	list<PDD_DATA>				distributeList;
-	list<PDD_DATA>::iterator	it;
-	int							NumOfParticipant;
-
-	PPDD_NODE PDatagram			= (PPDD_NODE)malloc(sizeof(_PDD_NODE));		//기존에 있는 노드들에게 새로운 참여자의 정보를 전파하기 위해 쓰는 데이터그램, 오직 한개 엔트리를 가짐, Front-End에서 전달받은 패킷 그대로 써도 될듯
-	PPDD_NODE ReturnDatagram	= (PPDD_NODE)malloc(sizeof(_PDD_NODE));		//새로 추가된 노드에게 기존 참여자들의 정보를 전파하기 위해 쓰는 데이터그램, 여러개의 엔트리를 가짐
-
-	while (true) {
-		memset(PDatagram, 0, sizeof(PDD_NODE));
-		memset(ReturnDatagram, 0, sizeof(PDD_NODE));
-
-		Sleep(10);
-
-		while (isReceviedDataExist()) {
-			PDD_NODE entry = recvData.back().second;
-			
-			if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_SAVE || entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_MODIFY || entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REMOVE) {
-				if (!this->DB->isTopicExist(entry.PDD_DATA[0].PARTICIPANT_TOPIC)) {
-					printf("This Topic isn't Exist\n");
-					entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
-				}
-				else {
-					ReturnDatagram->PDD_HEADER.MESSAGE_TYPE = entry.PDD_HEADER.MESSAGE_TYPE;
-					memcpy(PDatagram, &entry, sizeof(PDD_NODE));
-					PDatagram->PDD_HEADER.NUMBER_OF_PARTICIPANT = 1;
-
-					distributeList = DB->InsertEntry(entry.PDD_DATA[0]);
-					// 새로운 참여자의 유형과 반대되는 유형의 참여자들 정보를 DB에서 수신함
-
-					entry.PDD_HEADER.MESSAGE_TYPE += MESSAGE_OPTION_PLUS_DONE;
-				}
-			} else {
-				puts("ERROR MSG TYPE");
-				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
-			}
-
-			// Return Result Packet To Front-End Server
-			socket->sendPacket(inet_ntoa(recvData.back().first), (char *)&entry, sizeof(_PDD_NODE), FES_PORT);
-
-			// NumOfParticipat
-			NumOfParticipant = 0;
-
-			for (it = distributeList.begin(); it != distributeList.end(); ++it) {
-				printf("To : %s || Data : %s / %s / %s / %s / %d / %s\n", (*it).PARTICIPANT_IP, (*it).PARTICIPANT_NODE_TYPE == NODE_TYPE_PUB ? "PUB" : "SUB",
-					(*it).PARTICIPANT_TOPIC, (*it).PARTICIPANT_DOMAIN_ID, (*it).PARTICIPANT_IP, (*it).PARTICIPANT_PORT, (*it).PARTICIPANT_DATA);
-
-				ReturnDatagram->PDD_DATA[NumOfParticipant++] = (*it);
-
-				// Send New Participant Data to Existing Participant
-				socket->sendPacket((*it).PARTICIPANT_IP, (const char *)PDatagram, sizeof(_PDD_NODE), DDS_PORT);
-			}
-
-			//Send Existing Particiant Data To New Participant
-			ReturnDatagram->PDD_HEADER.NUMBER_OF_PARTICIPANT = NumOfParticipant;
-
-			socket->sendPacket(entry.PDD_DATA[0].PARTICIPANT_IP, (const char *)ReturnDatagram, sizeof(_PDD_NODE), DDS_PORT);
-
-			//Remove Receive Data
-			EnterCriticalSection(&cs);
-			recvData.pop_back();
-			LeaveCriticalSection(&cs);
-
-		}
-	}
-}
-*/
-
 bool							TNSController::isReceviedDataExist() {
-	return this->recvData.size() == 0 ? false : true;
+	return this->recvData->size() == 0 ? false : true;
 }
+
+void							TNSController::inputDummyDataToDB() {
+	PDD_DATA dummy, dummy2, dummy3;
+	memcpy(dummy.PARTICIPANT_DOMAIN_ID, "DDS_1", sizeof("DDS_1"));
+	memcpy(dummy.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	memcpy(dummy.PARTICIPANT_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	strcpy(dummy.PARTICIPANT_IP, "127.0.0.1");
+	dummy.PARTICIPANT_PORT = 1000;
+
+	memcpy(dummy2.PARTICIPANT_DOMAIN_ID, "DDS_1", sizeof("DDS_1"));
+	memcpy(dummy2.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy2.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	memcpy(dummy2.PARTICIPANT_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	strcpy(dummy2.PARTICIPANT_IP, "127.0.0.1");
+	dummy2.PARTICIPANT_PORT = 2000;
+
+	memcpy(dummy3.PARTICIPANT_DOMAIN_ID, "DDS_1", sizeof("DDS_1"));
+	memcpy(dummy3.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy3.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	memcpy(dummy3.PARTICIPANT_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	strcpy(dummy3.PARTICIPANT_IP, "127.0.0.1");
+	dummy3.PARTICIPANT_PORT = 3000;
+
+	this->databaseManager->InsertEntry(dummy);
+	this->databaseManager->InsertEntry(dummy2);
+	this->databaseManager->InsertEntry(dummy3);
+
+	dummy.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+	dummy2.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+	dummy3.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+
+
+	this->databaseManager->InsertEntry(dummy);
+	this->databaseManager->InsertEntry(dummy2);
+	this->databaseManager->InsertEntry(dummy3);
+
+	memcpy(dummy.PARTICIPANT_DOMAIN_ID, "DDS_2", sizeof("DDS_1"));
+	memcpy(dummy.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	memcpy(dummy.PARTICIPANT_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	//dummy.PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.5");
+	strcpy(dummy.PARTICIPANT_IP, "127.0.0.1");
+
+	memcpy(dummy2.PARTICIPANT_DOMAIN_ID, "DDS_2", sizeof("DDS_1"));
+	memcpy(dummy2.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy2.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	memcpy(dummy2.PARTICIPANT_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	//dummy2.PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.6");
+	strcpy(dummy2.PARTICIPANT_IP, "127.0.0.1");
+
+	memcpy(dummy3.PARTICIPANT_DOMAIN_ID, "DDS_2", sizeof("DDS_1"));
+	memcpy(dummy3.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy3.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	memcpy(dummy3.PARTICIPANT_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	//dummy3.PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.7");
+	strcpy(dummy3.PARTICIPANT_IP, "127.0.0.1");
+
+	this->databaseManager->InsertEntry(dummy);
+	this->databaseManager->InsertEntry(dummy2);
+	this->databaseManager->InsertEntry(dummy3);
+
+	dummy.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+	dummy2.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+	dummy3.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+
+	this->databaseManager->InsertEntry(dummy);
+	this->databaseManager->InsertEntry(dummy2);
+	this->databaseManager->InsertEntry(dummy3);
+
+	memcpy(dummy.PARTICIPANT_DOMAIN_ID, "DDS_3", sizeof("DDS_1"));
+	memcpy(dummy.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy.TD_TOKEN, "BBBBBB", sizeof("BBBBBB"));
+	memcpy(dummy.PARTICIPANT_TOPIC, "Z/XX/CCC/VVVV/BBBBBB", sizeof("Z/XX/CCC/VVVV/BBBBBB"));
+	//dummy.PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.7");
+	strcpy(dummy.PARTICIPANT_IP, "127.0.0.1");
+
+	memcpy(dummy2.PARTICIPANT_DOMAIN_ID, "DDS_3", sizeof("DDS_1"));
+	memcpy(dummy2.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy2.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy2.TD_TOKEN, "EEEEEE", sizeof("EEEEEE"));
+	memcpy(dummy2.PARTICIPANT_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	//dummy2.PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.6");
+	strcpy(dummy2.PARTICIPANT_IP, "127.0.0.1");
+
+	memcpy(dummy3.PARTICIPANT_DOMAIN_ID, "DDS_3", sizeof("DDS_1"));
+	memcpy(dummy3.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy3.PARTICIPANT_NODE_TYPE = NODE_TYPE_PUB;
+	//memcpy(dummy3.TD_TOKEN, "TTTTTT", sizeof("TTTTTT"));
+	memcpy(dummy3.PARTICIPANT_TOPIC, "Q/WW/EEE/RRRR/TTTTTT", sizeof("Q/WW/EEE/RRRR/TTTTTT"));
+	//dummy3.PARTICIPANT_IP.S_un.S_addr = inet_addr("127.0.0.5");
+	strcpy(dummy3.PARTICIPANT_IP, "127.0.0.1");
+
+	this->databaseManager->InsertEntry(dummy);
+	this->databaseManager->InsertEntry(dummy2);
+	this->databaseManager->InsertEntry(dummy3);
+
+	dummy.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+	dummy2.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+	dummy3.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+
+	this->databaseManager->InsertEntry(dummy);
+	this->databaseManager->InsertEntry(dummy2);
+	this->databaseManager->InsertEntry(dummy3);
+
+
+	memcpy(dummy.PARTICIPANT_DOMAIN_ID, "DDS_1", sizeof("DDS_1"));
+	memcpy(dummy.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
+	dummy.PARTICIPANT_NODE_TYPE = NODE_TYPE_SUB;
+	memcpy(dummy.PARTICIPANT_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
+	strcpy(dummy.PARTICIPANT_IP, "127.0.0.35");
+	dummy.PARTICIPANT_PORT = 1000;
+	this->databaseManager->InsertEntry(dummy);
+
+	printf("Input Complete\n");
+}
+

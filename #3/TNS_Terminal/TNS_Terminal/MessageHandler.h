@@ -9,7 +9,7 @@ public:
 
 	//recive data process
 	void			setPDDNode(PDD_NODE *PN);
-	void			addDataToNode(PDD_NODE *PN, PDD_DATA PD);
+	void			addDataToNode(PPDD_NODE PN, PDD_DATA PD);
 
 	bool			isPacketAvailable(PDD_NODE *PN);
 	void			setParticipantNumber(PDD_NODE *PN, int num);
@@ -17,6 +17,5 @@ public:
 	void			setMessageTypeProcessDone(PDD_NODE *PN);
 	void			setMessageType(PDD_NODE *PN, int type);
 	void			copyDatagram(PDD_NODE * oldNode, PDD_NODE * newNode);
-
 };
 

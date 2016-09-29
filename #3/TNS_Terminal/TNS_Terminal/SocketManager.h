@@ -25,18 +25,18 @@ public:
 	SOCKET							getRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
 
 	void							CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);
-	PDD_NODE						ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);
+	PDD_NODE						ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr);
 	void							AcceptProc(int idx, int *totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);
-	void							savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>>	* dq, PDD_NODE pn, sockaddr_in addr);
-	void						 	getRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> * dq);
+	void							savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>>	* dq, PDD_NODE * pn, sockaddr_in addr);
+	void						 	getRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> ** dq);
 	void							sendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port);
+
 private:
-
 	HANDLE							recvThread;
+
 	void							setUIView();
-
-
 	SOCKET 							createSocket();
+
 	void							setSocketTargetAddress(SOCKET * s, char * TargetAddress, int port);
 	void							bindingSocket(SOCKET servSocket, int PORT);
 	static void 					linkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
