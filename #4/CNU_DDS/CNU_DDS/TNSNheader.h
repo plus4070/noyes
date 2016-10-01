@@ -49,8 +49,8 @@
 #define MESSAGE_ERROR_CLOSE		"Close Error"
 #define MESSAGE_ERROR_CLIENT		"clientSocket() error"
 #define MESSAGE_ERROR_CONNECT		"connect() error!"
-#define MESSAGE_ERROR_WSA_SELECT		"WSAEventSelect() error"
-#define MESSAGE_ERROR_WSA_STARTUP		"WSAStartup() error!"
+#define MESSAGE_ERROR_WSA_SELECT	"WSAEventSelect() error"
+#define MESSAGE_ERROR_WSA_STARTUP	"WSAStartup() error!"
 
 // TCPSocket
 typedef struct _PDD_HEADER {

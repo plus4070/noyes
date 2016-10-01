@@ -26,17 +26,17 @@ namespace CNU_DDS
 	static UINT WINAPI Receiving(LPVOID p);
 	static UINT WINAPI Storing(LPVOID p);
 
-	void OpenConnection(vector<SOCKET> hSockArray, vector<WSAEVENT>	hEventArray, int index, int sockTotal);
-	void TransferData(LPVOID p, SOCKET * sockArray, int index);
-	void CloseConnection(vector<SOCKET> hSockArray, vector<WSAEVENT>	hEventArray, SOCKET * sockArray, WSAEVENT * eventArray, int index);
+	void	OpenConnection(vector<SOCKET> hSockArray, vector<WSAEVENT>	hEventArray, int index, int sockTotal);
+	void	TransferData(LPVOID p, SOCKET * sockArray, int index);
+	void	CloseConnection(vector<SOCKET> hSockArray, vector<WSAEVENT>	hEventArray, SOCKET * sockArray, WSAEVENT * eventArray, int index);
 
-	void SeperateMessagePerType(deque<PDD_NODE> * recvQueue, TNSTable * TNST, PDD_NODE Datagram);
-	void SetDatagramFromPTNSP(PDD_NODE * datagram, PTNSP_NODE PTNSP, SOCKADDR_IN * tempAddr);
+	void	SeperateMessagePerType(deque<PDD_NODE> * recvQueue, TNSTable * TNST, PDD_NODE Datagram);
+	void	SetDatagramFromPTNSP(PDD_NODE * datagram, PTNSP_NODE PTNSP, SOCKADDR_IN * tempAddr);
 
-	void PrintMessage(PDD_NODE datagram);
-	void PrintPTNSP(PTNSP_NODE PTNSP);
-	void InputDummy(TNSTable * TNSPTable);
-	void InitialFrontEndServer();
+	void	PrintMessage(PDD_NODE datagram);
+	void	PrintPTNSP(PTNSP_NODE PTNSP);
+	void	InputDummy(TNSTable * TNSPTable);
+	void	InitialFrontEndServer();
 }
 
 #endif

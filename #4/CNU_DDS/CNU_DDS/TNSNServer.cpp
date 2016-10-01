@@ -111,16 +111,16 @@ namespace CNU_DDS
 	}
 
 	static UINT WINAPI Receiving(LPVOID p) {
-		WSADATA				wsaData;
-		SOCKET				hServSock;
+		WSADATA		wsaData;
+		SOCKET		hServSock;
 		
 		vector<SOCKET>		hSockArray; //소켓 핸들배열 - 연결 요청이 들어올 때마다 생성되는 소켓의 핸들을 이 배열에 저장. (최대64)
 		vector<WSAEVENT>	hEventArray;
 		
 		WSANETWORKEVENTS	netEvents;
 
-		int					sockTotal = 0;
-		int					index, i;
+		int		sockTotal = 0;
+		int		index, i;
 
 		// 윈속 초기화 (성공시 0, 실패시 에러 코드리턴)
 		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -199,14 +199,14 @@ namespace CNU_DDS
 	}
 
 	void OpenConnection(vector<SOCKET> hSockArray, vector<WSAEVENT>	hEventArray, int index, int sockTotal) {
-		SOCKADDR_IN			clntAddr;
-		int					clntLen;
+		SOCKADDR_IN		clntAddr;
+		int		clntLen;
 
-		SOCKET				hClntSock;
+		SOCKET		hClntSock;
 		WSAEVENT			newEvent;
 
-		vector<SOCKET>::iterator sVec_it;
-		vector<WSAEVENT>::iterator eVec_it;
+		vector<SOCKET>::iterator		sVec_it;
+		vector<WSAEVENT>::iterator		eVec_it;
 
 		clntLen = sizeof(clntAddr);
 
@@ -233,7 +233,7 @@ namespace CNU_DDS
 	void TransferData(LPVOID p, SOCKET * sockArray, int index) {
 		deque<PDD_NODE>		*recvQueue = (deque<PDD_NODE>*)p;
 		PDD_NODE			receiveData;
-		int					strLen;
+		int		strLen;
 
 		struct	sockaddr_in name;
 		int len = sizeof(name);
@@ -251,8 +251,8 @@ namespace CNU_DDS
 	}
 
 	void CloseConnection(vector<SOCKET> hSockArray, vector<WSAEVENT>	hEventArray, SOCKET * sockArray, WSAEVENT * eventArray, int index) {
-		vector<SOCKET>::iterator sVec_it;
-		vector<WSAEVENT>::iterator eVec_it;
+		vector<SOCKET>::iterator		sVec_it;
+		vector<WSAEVENT>::iterator		eVec_it;
 
 		WSACloseEvent(eventArray[index]);
 
@@ -270,13 +270,13 @@ namespace CNU_DDS
 	}
 
 	static UINT WINAPI Storing(LPVOID p) {
-		PTNSP_NODE					PTNSP;
-		PDD_NODE					sendDatagram;
-		SOCKADDR_IN					tempAddr;
-		SOCKET						clientSocket;
+		PTNSP_NODE		PTNSP;
+		PDD_NODE			sendDatagram;
+		SOCKADDR_IN		tempAddr;
+		SOCKET		clientSocket;
 
-		deque<PDD_NODE>				* recvQueue = (deque<PDD_NODE>*)p;
-		TNSTable					* TNST = new TNSTable();
+		deque<PDD_NODE>		* recvQueue = (deque<PDD_NODE>*)p;
+		TNSTable			* TNST = new TNSTable();
 		InputDummy(TNST);
 
 		while (true) {
@@ -314,10 +314,10 @@ namespace CNU_DDS
 	}
 
 	void SeperateMessagePerType(deque<PDD_NODE> * recvQueue, TNSTable * TNST, PDD_NODE receiveDatagram) {
-		PDD_NODE sendDatagram;
-		deque<PDD_NODE>::iterator	it;
+		PDD_NODE		sendDatagram;
+		deque<PDD_NODE>::iterator		it;
 
-		int counter = 0;
+		int		counter = 0;
 		for (it = recvQueue->begin(); it != recvQueue->end(); it++) {
 			sendDatagram = (*it);
 			if (TNS_TYPE == 1) {
@@ -385,14 +385,14 @@ namespace CNU_DDS
 
 	void InitialFrontEndServer() {
 		int	test_type;
-		char topic[MAX_CHAR];
-		char domain[MAX_CHAR];
-		char nextzone[ADDRESS_SIZE];
-		char participantip[ADDRESS_SIZE];
-		int participantport;
-		char data[MAX_DATA_SIZE];
-		int pubsub;
-		int messageType;
+		char	topic[MAX_CHAR];
+		char	domain[MAX_CHAR];
+		char	nextzone[ADDRESS_SIZE];
+		char	participantip[ADDRESS_SIZE];
+		int	participantport;
+		char	data[MAX_DATA_SIZE];
+		int	pubsub;
+		int	messageType;
 
 		printf("[ INITIALIZE Front-End SERVER ]\n\n");
 
