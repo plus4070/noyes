@@ -42,7 +42,7 @@ int main()
 	//ThroughputTest();
 	
 
-	initalizeTNSServer();
+	InitalizeTNSServer();
 	
 	/*
 	ShapeTest();

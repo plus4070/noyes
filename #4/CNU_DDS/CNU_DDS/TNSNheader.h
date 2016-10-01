@@ -41,6 +41,17 @@
 
 #define IP						"127.0.0.1"
 
+#define MESSAGE_ERROR_SOCKET		"socket() error"
+#define MESSAGE_ERROR_BIND		"bind() error"
+#define MESSAGE_ERROR_LISTEN		"listen() error"
+#define MESSAGE_ERROR_ACCEPT		"Accept Error"
+#define MESSAGE_ERROR_READ		"Read Error"
+#define MESSAGE_ERROR_CLOSE		"Close Error"
+#define MESSAGE_ERROR_CLIENT		"clientSocket() error"
+#define MESSAGE_ERROR_CONNECT		"connect() error!"
+#define MESSAGE_ERROR_WSA_SELECT		"WSAEventSelect() error"
+#define MESSAGE_ERROR_WSA_STARTUP		"WSAStartup() error!"
+
 // TCPSocket
 typedef struct _PDD_HEADER {
 	int					ID;
