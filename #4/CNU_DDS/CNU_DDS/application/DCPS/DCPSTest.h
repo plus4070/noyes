@@ -1,0 +1,9 @@
+#ifndef APPLICATION_DCPS_DCPSTEST_H_
+#define APPLICATION_DCPS_DCPSTEST_H_
+
+namespace CNU_DDS
+{
+	void	DCPSTest();
+}
+
+#endif /* APPLICATION_DCPS_DCPSTEST_H_ */

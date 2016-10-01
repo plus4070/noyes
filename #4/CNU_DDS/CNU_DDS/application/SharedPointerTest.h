@@ -1,0 +1,11 @@
+#ifndef APPLICATION_SHAREDPOINTERTEST_H_
+#define APPLICATION_SHAREDPOINTERTEST_H_
+
+namespace CNU_DDS
+{
+	#define SHARED_PTR_TEST_SIZE	50000
+
+	void	SharedPointerTest();
+}
+
+#endif
