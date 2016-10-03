@@ -173,3 +173,8 @@ vector<string> TNSTable::splitTopic(const string & s) {
 	}
 	return tokens;
 }
+
+int		TNSTable::getNumOfRequests() {
+	//return this->requestList.size();
+	return this->numOfRequests;
+}

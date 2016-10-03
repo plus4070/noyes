@@ -172,9 +172,8 @@ void	ShapeTest()
 	int								reader_counter		= 0;
 	int								writer_counter		= 0;
 	MonitoringData*					monitoring_data		= NULL;
-	SEDPdiscoveredSubscriptionData*	sub_data			= new SEDPdiscoveredSubscriptionData();
-	SEDPdiscoveredPublicationData*	pub_data			= new SEDPdiscoveredPublicationData();
-
+	SEDPdiscoveredSubscriptionData	*sub_data			= new SEDPdiscoveredSubscriptionData();
+	SEDPdiscoveredPublicationData	*pub_data			= new SEDPdiscoveredPublicationData();
 
 
 	for(int i=0; i<100; i++)
@@ -218,8 +217,8 @@ void	ShapeTest()
 		part->_remote_datawriter_is_discovered(pub_data);
 
 
-	printf("[# of discovered reader] %d\n", reader_counter);
-	printf("[# of discovered writer] %d\n", writer_counter);
+		printf("[# of discovered reader] %d\n", reader_counter);
+		printf("[# of discovered writer] %d\n", writer_counter);
 	}
 
 	}

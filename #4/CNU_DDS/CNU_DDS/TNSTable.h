@@ -29,4 +29,5 @@ public:
 	void		testShowAll();
 
 	vector<string> splitTopic(const string & s);
+	int		getNumOfRequests();
 };

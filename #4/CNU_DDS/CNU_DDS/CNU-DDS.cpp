@@ -41,12 +41,12 @@ int main()
 	//DCPSTest();
 	//ThroughputTest();
 	
-
-	initalizeTNSServer();
+	start();
+	//initalizeTNSServer();
 	
-	/*
-	ShapeTest();
-	*/
+	
+	//ShapeTest();
+	
 
 
 

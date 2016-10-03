@@ -10,9 +10,9 @@ using namespace std;
 
 namespace CNU_DDS
 {
-
 	void	initalizeTNSServer();
-
+	void	initalDomainForTNS();
+	void	start();
 	SOCKET	CreateSocket();
 	void	BindingSocket(SOCKET servSocket);
 	void	LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
@@ -20,10 +20,6 @@ namespace CNU_DDS
 	void	startServer();
 	void	endServer();
 
-	static UINT WINAPI receiving(LPVOID p);
-	static UINT WINAPI storing(LPVOID p);
-
-	void inputDummy(TNSTable * TNSPTable);
 	void initalFrontEndServer();
 }
 
