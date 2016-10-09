@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
-#include <winsock2.h> 
+#include <WinSock2.h> 
 #include <deque>
 #include <vector>
 #include "stdafx.h"

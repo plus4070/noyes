@@ -17,8 +17,8 @@ public:
 	void	startTNSServer();
 
 private:
-	SocketManager		* socketManager;
-
+	SocketManager	* socketManager;
+	ViewManager	* viewManager;
 	MessageHandler	* messageHandler;
 
 	CRITICAL_SECTION	cs;
@@ -27,6 +27,4 @@ private:
 	void	initalizeSetting();
 	void	closeTNSServer();
 	bool	isReceviedDataExist();
-
-	void	inputDummyDataToDB();
 };

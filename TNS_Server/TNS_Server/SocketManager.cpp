@@ -1,5 +1,4 @@
 #include <process.h>
-#include "TCPSocket.h"
 #include "SocketManager.h"
 
 static UINT WINAPI receiving(LPVOID p);
@@ -171,7 +170,7 @@ void SocketManager::deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, v
 	EventArray->erase(eVec_it);
 }
 
-void SocketManager::AcceptProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
+void SocketManager::acceptProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
 {
 	SOCKADDR_IN clntAddr;
 	int clntLen = sizeof(clntAddr);
@@ -193,7 +192,7 @@ void SocketManager::AcceptProc(int idx, int * totalSocket, vector<SOCKET> * Sock
 	printf("array  size : %d\n", *totalSocket);
 }
 
-PDD_NODE SocketManager::ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr) 
+PDD_NODE SocketManager::readProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr) 
 {
 	PDD_NODE	 receiveData;
 	int len = sizeof(*addr);
@@ -207,7 +206,7 @@ PDD_NODE SocketManager::ReadProc(int idx, int * strLen, vector<SOCKET> * SocketA
 	return receiveData;
 }
 
-void SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
+void SocketManager::closeProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
 {
 	WSACloseEvent(EventArray->at(idx));
 
@@ -275,7 +274,7 @@ static UINT WINAPI receiving(LPVOID p)
 						puts("Accept Error");
 						break;
 					}
-					manager->AcceptProc(index, &sockTotal, &hSockArray, &hEventArray);
+					manager->acceptProc(index, &sockTotal, &hSockArray, &hEventArray);
 				}
 
 				if (netEvents.lNetworkEvents & FD_READ) {
@@ -284,7 +283,7 @@ static UINT WINAPI receiving(LPVOID p)
 						puts("Read Error");
 						break;
 					}
-					receiveData = manager->ReadProc(index, &strLen, &hSockArray, &hEventArray, &name);
+					receiveData = manager->readProc(index, &strLen, &hSockArray, &hEventArray, &name);
 					
 					printf("%s", inet_ntoa(name.sin_addr));
 
@@ -300,7 +299,7 @@ static UINT WINAPI receiving(LPVOID p)
 						puts("Close Error");
 						break;
 					}
-					manager->CloseProc(index, &sockTotal, &hSockArray, &hEventArray);
+					manager->closeProc(index, &sockTotal, &hSockArray, &hEventArray);
 				}
 			}
 		}
