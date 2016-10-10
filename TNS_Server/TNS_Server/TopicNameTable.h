@@ -19,19 +19,17 @@ class TopicNameTable
 {
 public:
 	TopicNameTable();
+	virtual	~TopicNameTable();
+	
+	void	ResetTable();
+	bool	IsEntryExist(TN_ENTRY entry);
+	bool	AddEntry(TN_ENTRY entry);
+	bool	DeleteEntry(TN_ENTRY entry);
+	bool	GetEntry(TN_ENTRY *p_entry);
+	bool	SetEntry(TN_ENTRY *p_entry);
 
-	virtual		~TopicNameTable();
-	void		resetTable();
-
-
-	bool			isEntryExist(TN_ENTRY entry);
-	bool			addEntry(TN_ENTRY entry);
-	bool			deleteEntry(TN_ENTRY entry);
-	bool			getEntry(TN_ENTRY *p_entry);
-	bool			setEntry(TN_ENTRY *p_entry);
-
-	void			testShowAll();
-	vector<string>	splitTopic(const string & s);
+	void			TestShowAll();
+	vector<string>	SplitTopic(const string & s);
 
 	PTN_NODE TN_head;
 };

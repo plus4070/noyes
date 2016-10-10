@@ -3,7 +3,7 @@
 
 #define MAX_CHAR	100
 #define MAX_DATA_SIZE	800
-#define MAX_PDD_NUMBER	25
+#define MAX_PDD_NUMBER	1
 #define NULL		0
 
 #define	ADDRESS_SIZE	16
@@ -48,8 +48,6 @@ typedef struct _TN_NODE {
 	struct _TN_NODE	*next;
 } TN_NODE, *PTN_NODE;
 
-
-
 //TCPSocket
 typedef struct _PDD_HEADER {
 	int	ID;
@@ -60,6 +58,7 @@ typedef struct _PDD_HEADER {
 typedef struct _PDD_DATA {
 	int	PARTICIPANT_NODE_TYPE;
 	char	PARTICIPANT_TOPIC[MAX_CHAR];
+	char	PARTICIPANT_TOPICTYPE[MAX_CHAR];
 	char	PARTICIPANT_DOMAIN_ID[MAX_CHAR];
 	char	PARTICIPANT_IP[ADDRESS_SIZE];
 	int	PARTICIPANT_PORT;

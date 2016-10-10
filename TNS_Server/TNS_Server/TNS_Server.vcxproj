@@ -153,7 +153,6 @@
     <ClCompile Include="TNS.cpp" />
     <ClCompile Include="TNSController.cpp" />
     <ClCompile Include="TopicNameTable.cpp" />
-    <ClCompile Include="ViewManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MessageHandler.h" />
@@ -164,7 +163,6 @@
     <ClInclude Include="TNS.h" />
     <ClInclude Include="TNSController.h" />
     <ClInclude Include="TopicNameTable.h" />
-    <ClInclude Include="ViewManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

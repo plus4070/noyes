@@ -9,14 +9,14 @@ public:
 	~MessageHandler();
 
 	//recive data process
-	void			setPDDNode(PDD_NODE *PN);
-	void			addDataToNode(PPDD_NODE PN, PDD_DATA PD);
+	void			SetPDDNode(PDD_NODE *PN);
+	void			AddDataToNode(PPDD_NODE PN, PDD_DATA PD);
 
-	bool			isPacketAvailable(PDD_NODE *PN);
-	void			setParticipantNumber(PDD_NODE *PN, int num);
-	void			setMessageTypeTopicNotExist(PDD_NODE *PN);
-	void			setMessageTypeProcessDone(PDD_NODE *PN);
-	void			setMessageType(PDD_NODE *PN, int type);
-	void			copyDatagram(PDD_NODE * oldNode, PDD_NODE * newNode);
+	bool			IsPacketAvailable(PDD_NODE *PN);
+	void			SetParticipantNumber(PDD_NODE *PN, int num);
+	void			SetMessageTypeTopicNotExist(PDD_NODE *PN);
+	void			SetMessageTypeProcessDone(PDD_NODE *PN);
+	void			SetMessageType(PDD_NODE *PN, int type);
+	void			CopyDatagram(PDD_NODE * oldNode, PDD_NODE * newNode);
 
 };

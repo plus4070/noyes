@@ -10,5 +10,3 @@ using namespace std;
 #include "TopicNameTable.h"
 #include "TCPSocket.h"
 #include "RequestTable.h"
-
-TCPSocket socketServer;

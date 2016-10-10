@@ -24,7 +24,7 @@ int TCPSocket::StartServer()
 	HANDLE sendThread = (HANDLE)_beginthreadex(NULL, 0, sending, (LPVOID)this, 0, NULL);
 
 	this->initialize();
-	TNTable->testShowAll();
+	TNTable->TestShowAll();
 
 	while (1) {}
 
@@ -66,8 +66,8 @@ void TCPSocket::initialize() {
 		printf("Input Next Zone >");
 		scanf("%s", &TE.TN_NEXTZONE);
 
-		TNTable->addEntry(TE);
-		TNTable->testShowAll();
+		TNTable->AddEntry(TE);
+		TNTable->TestShowAll();
 
 		fflush(stdin);
 
@@ -145,22 +145,22 @@ void TCPSocket::inputDummyEntryToTNTable() {
 	memcpy(TE.TN_NEXTZONE, "127.0.0.1", ADDRESS_SIZE);
 	memcpy(TE.TN_TOKEN, "A", sizeof("A"));
 	memcpy(TE.TN_TOPIC, "A/BB/CCC/DDDD/EEEEEE", sizeof("A/BB/CCC/DDDD/EEEEEE"));
-	TNTable->addEntry(TE);
+	TNTable->AddEntry(TE);
 	TE.TN_LEVEL = 2;
 	memcpy(TE.TN_TOKEN, "BB", sizeof("BB"));
-	TNTable->addEntry(TE);
+	TNTable->AddEntry(TE);
 	TE.TN_LEVEL = 3;
 	memcpy(TE.TN_TOKEN, "CCC", sizeof("CCC"));
-	TNTable->addEntry(TE);
+	TNTable->AddEntry(TE);
 	TE.TN_LEVEL = 4;
 	memcpy(TE.TN_TOKEN, "DDDD", sizeof("DDDD"));
-	TNTable->addEntry(TE);
+	TNTable->AddEntry(TE);
 	TE.TN_LEVEL = 5;
 	memcpy(TE.TN_TOKEN, "EEEEEE", sizeof("EEEEEE"));
 	memcpy(TE.TN_NEXTZONE, "127.0.0.1", ADDRESS_SIZE);
 	//memcpy(TE.TN_NEXTZONE, "192.168.0.22", ADDRESS_SIZE);
-	TNTable->addEntry(TE);
-	TNTable->testShowAll();
+	TNTable->AddEntry(TE);
+	TNTable->TestShowAll();
 }
 
 void TCPSocket::Response() {
@@ -181,8 +181,8 @@ void TCPSocket::Response() {
 
 			memcpy(TE.TN_TOPIC, entry.PDD_DATA[0].PARTICIPANT_TOPIC, MAX_CHAR);
 			
-			if (TNTable->isEntryExist(TE)) {
-				TNTable->getEntry(&TE);
+			if (TNTable->IsEntryExist(TE)) {
+				TNTable->GetEntry(&TE);
 				memcpy(entry.PDD_DATA[0].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
 				entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_RESPONSE;
 			}
@@ -257,7 +257,7 @@ static void LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockAr
 
 
 void TCPSocket::SaveRequests(IN_ADDR ip, PDD_NODE receiveData) {
-	RTable->addEntry(ip, receiveData);
+	RTable->AddEntry(ip, receiveData);
 }
 
 static UINT WINAPI receiving(LPVOID p) {
@@ -448,7 +448,7 @@ static UINT WINAPI sending(LPVOID p) {
 			PDD_NODE entry = PN->key.REQUEST_DATA;
 
 			if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REQUEST) {
-				tokenArray = tcpSocket->TNTable->splitTopic(entry.PDD_DATA[0].PARTICIPANT_TOPIC);
+				tokenArray = tcpSocket->TNTable->SplitTopic(entry.PDD_DATA[0].PARTICIPANT_TOPIC);
 				//수신 메시지 출력
 				
 				cout << "Request MSG" << endl;
@@ -461,8 +461,8 @@ static UINT WINAPI sending(LPVOID p) {
 				memcpy(TE.TN_TOPIC, entry.PDD_DATA[0].PARTICIPANT_TOPIC, MAX_CHAR);
 				memcpy(TE.TN_TOKEN, tokenArray.at(TE.TN_LEVEL - 1).c_str(), MAX_CHAR);
 
-				if (tcpSocket->TNTable->isEntryExist(TE)) {
-					tcpSocket->TNTable->getEntry(&TE);
+				if (tcpSocket->TNTable->IsEntryExist(TE)) {
+					tcpSocket->TNTable->GetEntry(&TE);
 					memcpy(entry.PDD_DATA[0].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
 					entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_RESPONSE;
 					printf("%s", entry.PDD_DATA[0].PARTICIPANT_DATA);

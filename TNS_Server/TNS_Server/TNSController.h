@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include"ViewManager.h"
+#include "TopicNameTable.h"
 #include"SocketManager.h"
 #include "MessageHandler.h"
 #include <process.h>
@@ -14,17 +14,19 @@ public:
 	TNSController();
 	~TNSController();
 
-	void	startTNSServer();
+	void	StartTNSServer();
 
 private:
-	SocketManager	* socketManager;
-	ViewManager	* viewManager;
-	MessageHandler	* messageHandler;
+	TopicNameTable	*TNTable;
+	SocketManager		*socketManager;
+	MessageHandler	*messageHandler;
 
 	CRITICAL_SECTION	cs;
-	deque<pair<IN_ADDR, PDD_NODE>>	* recvData;
+	deque<pair<IN_ADDR, PDD_NODE>>	*recvData;
 
-	void	initalizeSetting();
-	void	closeTNSServer();
-	bool	isReceviedDataExist();
+	void	InitializeView();
+	void	InitializeSetting();
+	void	InputDummyEntryToTNTable();
+	void	CloseTNSServer();
+	bool	IsReceviedDataExist();
 };

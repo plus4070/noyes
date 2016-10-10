@@ -2,7 +2,7 @@
 
 TopicNameTable::TopicNameTable()
 {
-	resetTable();
+	ResetTable();
 }
 
 
@@ -10,11 +10,11 @@ TopicNameTable::~TopicNameTable()
 {
 }
 
-void	TopicNameTable::resetTable() {
+void	TopicNameTable::ResetTable() {
 	TN_head = NULL;
 }
 
-bool	TopicNameTable::isEntryExist(TN_ENTRY entry){
+bool	TopicNameTable::IsEntryExist(TN_ENTRY entry){
 	PTN_NODE currentNode = TN_head;
 
 	if (TN_head == NULL)
@@ -33,7 +33,7 @@ bool	TopicNameTable::isEntryExist(TN_ENTRY entry){
 	return false;
 }
 
-bool	TopicNameTable::addEntry(TN_ENTRY entry){
+bool	TopicNameTable::AddEntry(TN_ENTRY entry){
 	PTN_NODE currentNode;
 	PTN_NODE newNode = (PTN_NODE)malloc(sizeof(TN_NODE));
 
@@ -41,7 +41,7 @@ bool	TopicNameTable::addEntry(TN_ENTRY entry){
 	newNode->next = NULL;
 
 
-	if (isEntryExist(entry))
+	if (IsEntryExist(entry))
 		return false;
 
 	// Router entry¿¡ Ãß°¡
@@ -61,13 +61,13 @@ bool	TopicNameTable::addEntry(TN_ENTRY entry){
 	return true;
 }
 
-bool	TopicNameTable::deleteEntry(TN_ENTRY entry){
+bool	TopicNameTable::DeleteEntry(TN_ENTRY entry){
 
 	return false;
 }
 
-bool	TopicNameTable::getEntry(TN_ENTRY *p_entry){
-	if (!isEntryExist(*p_entry)) {
+bool	TopicNameTable::GetEntry(TN_ENTRY *p_entry){
+	if (!IsEntryExist(*p_entry)) {
 		return false;
 	}
 	else {
@@ -85,11 +85,11 @@ bool	TopicNameTable::getEntry(TN_ENTRY *p_entry){
 	return false;
 }
 
-bool	TopicNameTable::setEntry(TN_ENTRY *p_entry){
+bool	TopicNameTable::SetEntry(TN_ENTRY *p_entry){
 	return false;
 }
 
-void	TopicNameTable::testShowAll() {
+void	TopicNameTable::TestShowAll() {
 	PTN_NODE currentNode = TN_head;
 	puts("===============================================");
 	if (currentNode == NULL) {
@@ -104,7 +104,7 @@ void	TopicNameTable::testShowAll() {
 	}
 	puts("===============================================");
 }
-vector<string> TopicNameTable::splitTopic(const string & s) {
+vector<string> TopicNameTable::SplitTopic(const string & s) {
 	stringstream ss(s);
 	string item;
 	vector<string> tokens;

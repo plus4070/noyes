@@ -8,19 +8,19 @@ MessageHandler::~MessageHandler()
 {
 }
 
-void MessageHandler::setPDDNode(PDD_NODE *PN) 
+void MessageHandler::SetPDDNode(PDD_NODE *PN) 
 {
 	memset(PN, 0, sizeof(PDD_NODE));
 }
 
 
-void MessageHandler::addDataToNode(PPDD_NODE PN, PDD_DATA PD) 
+void MessageHandler::AddDataToNode(PPDD_NODE PN, PDD_DATA PD) 
 {
 	memcpy(&(PN->PDD_DATA[PN->PDD_HEADER.NUMBER_OF_PARTICIPANT]), &PD, sizeof(PDD_DATA));
 	PN->PDD_HEADER.NUMBER_OF_PARTICIPANT++;
 }
 
-bool MessageHandler::isPacketAvailable(PDD_NODE *PN) 
+bool MessageHandler::IsPacketAvailable(PDD_NODE *PN) 
 {
 	switch (PN->PDD_HEADER.MESSAGE_TYPE)
 	{
@@ -35,27 +35,27 @@ bool MessageHandler::isPacketAvailable(PDD_NODE *PN)
 	}
 }
 
-void MessageHandler::setParticipantNumber(PDD_NODE *PN, int num) 
+void MessageHandler::SetParticipantNumber(PDD_NODE *PN, int num) 
 {
 	PN->PDD_HEADER.NUMBER_OF_PARTICIPANT = num;
 }
 
-void MessageHandler::setMessageTypeTopicNotExist(PDD_NODE *PN) 
+void MessageHandler::SetMessageTypeTopicNotExist(PDD_NODE *PN) 
 {
 	PN->PDD_HEADER.MESSAGE_TYPE += MESSAGE_OPTION_PLUS_DONE;
 }
 
-void MessageHandler::setMessageTypeProcessDone(PDD_NODE *PN) 
+void MessageHandler::SetMessageTypeProcessDone(PDD_NODE *PN) 
 {
 	PN->PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
 }
 
-void MessageHandler::setMessageType(PDD_NODE *PN, int type) 
+void MessageHandler::SetMessageType(PDD_NODE *PN, int type) 
 {
 	PN->PDD_HEADER.MESSAGE_TYPE = type;
 }
 
-void MessageHandler::copyDatagram(PDD_NODE * oldNode, PDD_NODE * newNode) 
+void MessageHandler::CopyDatagram(PDD_NODE * oldNode, PDD_NODE * newNode) 
 {
 	memcpy(newNode, oldNode, sizeof(PDD_NODE));
 }

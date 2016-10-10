@@ -6,7 +6,7 @@ int main() {
 	TNSController server;
 
 	// 서버시작
-	server.startTNSServer();
+	server.StartTNSServer();
 
 	return 0;
 }

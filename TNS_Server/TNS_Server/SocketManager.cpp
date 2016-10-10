@@ -1,7 +1,8 @@
 #include <process.h>
 #include "SocketManager.h"
 
-static UINT WINAPI receiving(LPVOID p);
+static UINT WINAPI Receiving(LPVOID p);
+static UINT WINAPI Sending(LPVOID p);
 
 SocketManager::SocketManager()
 {
@@ -13,32 +14,57 @@ SocketManager::~SocketManager()
 	
 }
 
-void SocketManager::startRecevingThread()
+void SocketManager::StartRecevingThread()
 {
-	this->recvThread = (HANDLE)_beginthreadex(NULL, 0, receiving, (LPVOID)this, 0, NULL);
+	this->recvThread = (HANDLE)_beginthreadex(NULL, 0, Receiving, (LPVOID)this, 0, NULL);
 }
 
-void SocketManager::closeRecevingThread() 
+void SocketManager::CloseRecevingThread() 
 {
 	CloseHandle(recvThread);
 }
 
-void SocketManager::setCriticalSection(CRITICAL_SECTION * criticlaSection) 
-{
-	this->cs = *criticlaSection;
-}
-
-void SocketManager::getRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> ** dq) 
+void SocketManager::GetRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> ** dq) 
 {
 	*dq = &(this->recvData);
 }
 
-void SocketManager::setUIView() 
+SOCKET SocketManager::GetRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray)
+{
+	SOCKET s = this->CreateSocket();
+
+	this->BindingSocket(s, port);
+	this->LinkingEvents(s, sockNum, sockArray, eventArray);
+
+	return s;
+}
+
+void SocketManager::StartSendingThread()
+{
+	this->sendThread = (HANDLE)_beginthreadex(NULL, 0, Sending, (LPVOID)this, 0, NULL);
+}
+
+void SocketManager::CloseSendingThread()
+{
+	CloseHandle(sendThread);
+}
+
+void SocketManager::SetTNTable(TopicNameTable * TNTable)
+{
+	this->TNTable = TNTable;
+}
+
+void SocketManager::SetCriticalSection(CRITICAL_SECTION * criticlaSection) 
+{
+	this->cs = *criticlaSection;
+}
+
+void SocketManager::SetUIView() 
 {
 
 }
 
-void SocketManager::sendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port)
+void SocketManager::SendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port)
 {
 	SOCKET Socket = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -46,14 +72,14 @@ void SocketManager::sendPacket(char * TargetAddress, const char * Datagram, int 
 		puts("clientSocket() error");
 	}
 
-	setSocketTargetAddress(&Socket, TargetAddress, port);
+	SetSocketTargetAddress(&Socket, TargetAddress, port);
 
 	send(Socket, Datagram, SizeOfDatagram, 0);
 
 	closesocket(Socket);
 }
 
-SOCKET SocketManager::createSocket() 
+SOCKET SocketManager::CreateSocket() 
 {
 	// 소켓 생성 (성공시 핸들을, 실패시 "INVALID_SOCKET" 반환)
 	SOCKET servSock = socket(PF_INET, SOCK_STREAM, 0);
@@ -65,7 +91,7 @@ SOCKET SocketManager::createSocket()
 
 	return servSock;
 }
-void SocketManager::setSocketTargetAddress(SOCKET * s, char * TargetAddress, int port) 
+void SocketManager::SetSocketTargetAddress(SOCKET * s, char * TargetAddress, int port) 
 {
 	SOCKADDR_IN tempAddr;
 
@@ -78,7 +104,7 @@ void SocketManager::setSocketTargetAddress(SOCKET * s, char * TargetAddress, int
 		puts("connect() error!");
 }
 
-void SocketManager::bindingSocket(SOCKET servSocket, int PORT) 
+void SocketManager::BindingSocket(SOCKET servSocket, int PORT) 
 {
 	// 소켓 통신을 위한 기본 정보
 	SOCKADDR_IN servAddr;
@@ -93,7 +119,7 @@ void SocketManager::bindingSocket(SOCKET servSocket, int PORT)
 	}
 }
 
-void SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) 
+void SocketManager::LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) 
 {
 	// 이벤트 발생을 확인 (성공시 0, 실패시 "SOCKET_ERROR" 반환)
 	vector<SOCKET>::iterator sVec_it;
@@ -121,33 +147,24 @@ void SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> 
 	(*sockNum)++;
 }
 
-SOCKET SocketManager::getRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) 
-{
-	SOCKET s = this->createSocket();
-
-	this->bindingSocket(s, port);
-	this->linkingEvents(s, sockNum, sockArray, eventArray);
-
-	return s;
-}
 
 //receving
-bool SocketManager::isWsaWaitERROR() 
+bool SocketManager::IsWsaWaitERROR() 
 {
 	return false;
 }
 
-bool SocketManager::acceptConnection() 
+bool SocketManager::AcceptConnection() 
 {
 	return false;
 }
 
-bool SocketManager::closeConnection() 
+bool SocketManager::CloseConnection() 
 {
 	return false;
 }
 
-void SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) 
+void SocketManager::InsertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) 
 {
 	vector<SOCKET>::iterator	sVec_it = SocketArray->begin() + *idx;
 	vector<WSAEVENT>::iterator	eVec_it = EventArray->begin() + *idx;
@@ -158,7 +175,7 @@ void SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketArray, v
 	(*idx)++;
 }
 
-void SocketManager::deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
+void SocketManager::DeleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
 {
 	vector<SOCKET>::iterator sVec_it;
 	vector<WSAEVENT>::iterator eVec_it;
@@ -170,7 +187,7 @@ void SocketManager::deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, v
 	EventArray->erase(eVec_it);
 }
 
-void SocketManager::acceptProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
+void SocketManager::AcceptProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
 {
 	SOCKADDR_IN clntAddr;
 	int clntLen = sizeof(clntAddr);
@@ -184,7 +201,7 @@ void SocketManager::acceptProc(int idx, int * totalSocket, vector<SOCKET> * Sock
 	// 이벤트 발생 유무 확인(WSAEventSelect)
 	WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
 
-	insertSocketEvent(totalSocket, SocketArray, EventArray, hClntSock, newEvent);
+	InsertSocketEvent(totalSocket, SocketArray, EventArray, hClntSock, newEvent);
 
 	//Test Print Code
 	printf("새로 연결된 소켓의 핸들 %d \n", hClntSock);
@@ -192,7 +209,7 @@ void SocketManager::acceptProc(int idx, int * totalSocket, vector<SOCKET> * Sock
 	printf("array  size : %d\n", *totalSocket);
 }
 
-PDD_NODE SocketManager::readProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr) 
+PDD_NODE SocketManager::ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr) 
 {
 	PDD_NODE	 receiveData;
 	int len = sizeof(*addr);
@@ -206,7 +223,7 @@ PDD_NODE SocketManager::readProc(int idx, int * strLen, vector<SOCKET> * SocketA
 	return receiveData;
 }
 
-void SocketManager::closeProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
+void SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) 
 {
 	WSACloseEvent(EventArray->at(idx));
 
@@ -219,22 +236,23 @@ void SocketManager::closeProc(int idx, int * totalSocket, vector<SOCKET> * Socke
 	// 배열 정리.
 	printf("삭제 : %d\n", idx);
 
-	deleteSocketEvent(&idx, SocketArray, EventArray);
+	DeleteSocketEvent(&idx, SocketArray, EventArray);
 }
 
-void SocketManager::savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>>	* dq, PDD_NODE * pn, sockaddr_in addr) 
+void SocketManager::SavePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>>	* dq, PDD_NODE * pn, sockaddr_in addr) 
 {
 	EnterCriticalSection(cs);
 	dq->push_front(make_pair(addr.sin_addr, *pn));
 	LeaveCriticalSection(cs);
 }
 
-static UINT WINAPI receiving(LPVOID p) 
+static UINT WINAPI Receiving(LPVOID p) 
 {
 	SocketManager	 * manager = (SocketManager*)p;
 
-	PDD_NODE receiveData;
-	SOCKET hServSock;
+	WSADATA	wsaData;
+	PDD_NODE	receiveData;
+	SOCKET	hServSock;
 
 	vector<SOCKET>		hSockArray;		//소켓 핸들배열 - 연결 요청이 들어올 때마다 생성되는 소켓의 핸들을 이 배열에 저장. (최대64)
 	vector<WSAEVENT>	hEventArray;	//EventArray
@@ -246,7 +264,10 @@ static UINT WINAPI receiving(LPVOID p)
 	int index, i, strLen;
 	int len = sizeof(name);
 
-	hServSock = manager->getRecevingSocket(TERMINAL_PORT, &sockTotal, &hSockArray, &hEventArray);
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		puts("WSAStartup() error!");
+	}
+	hServSock = manager->GetRecevingSocket(TNS_PORT, &sockTotal, &hSockArray, &hEventArray);
 
 	SOCKET * sockArray;
 	WSAEVENT * eventArray;
@@ -274,21 +295,20 @@ static UINT WINAPI receiving(LPVOID p)
 						puts("Accept Error");
 						break;
 					}
-					manager->acceptProc(index, &sockTotal, &hSockArray, &hEventArray);
+					manager->AcceptProc(index, &sockTotal, &hSockArray, &hEventArray);
 				}
 
 				if (netEvents.lNetworkEvents & FD_READ) {
-
 					if (netEvents.iErrorCode[FD_READ_BIT] != 0) {
 						puts("Read Error");
 						break;
 					}
-					receiveData = manager->readProc(index, &strLen, &hSockArray, &hEventArray, &name);
+					receiveData = manager->ReadProc(index, &strLen, &hSockArray, &hEventArray, &name);
 					
 					printf("%s", inet_ntoa(name.sin_addr));
 
 					if (strLen != -1) {
-						manager->savePacketToDeque(&(manager->cs), &(manager->recvData), &receiveData, name);
+						manager->SavePacketToDeque(&(manager->cs), &(manager->recvData), &receiveData, name);
 					}
 					puts("Saved");
 				}
@@ -299,13 +319,85 @@ static UINT WINAPI receiving(LPVOID p)
 						puts("Close Error");
 						break;
 					}
-					manager->closeProc(index, &sockTotal, &hSockArray, &hEventArray);
+					manager->CloseProc(index, &sockTotal, &hSockArray, &hEventArray);
 				}
 			}
 		}
 	}
-
 	puts("close");
 	WSACleanup();
 	return 0;
+}
+
+static UINT WINAPI Sending(LPVOID p)
+{
+	SocketManager *manager = (SocketManager*)p;
+
+	SOCKET				clientSocket;
+	SOCKADDR_IN			tempAddr;
+	vector<string>		tokenArray;
+
+	while (true) {
+		Sleep(10);
+		if (manager->recvData.size() != 0) {
+			TN_ENTRY TE;
+			//저장된 RequestTable에서 꺼내와서 데이터 송신
+			PDD_NODE entry = manager->recvData.back().second;
+
+			if (entry.PDD_HEADER.MESSAGE_TYPE == MESSAGE_TYPE_REQUEST) {
+				tokenArray = manager->TNTable->SplitTopic(entry.PDD_DATA[0].PARTICIPANT_TOPIC);
+
+				//수신 메시지 출력
+				cout << "Request MSG" << endl;
+				cout << "Request Topic :" << entry.PDD_DATA[0].PARTICIPANT_TOPIC << endl;
+				cout << "Request TokenLevel :" << entry.PDD_DATA[0].PARTICIPANT_DATA << endl;
+				cout << "Request TYPE :" << entry.PDD_HEADER.MESSAGE_TYPE << endl;
+
+				TE.TN_LEVEL = atoi(entry.PDD_DATA[0].PARTICIPANT_DATA);
+
+				memcpy(TE.TN_TOPIC, entry.PDD_DATA[0].PARTICIPANT_TOPIC, MAX_CHAR);
+				memcpy(TE.TN_TOKEN, tokenArray.at(TE.TN_LEVEL - 1).c_str(), MAX_CHAR);
+
+				if (manager->TNTable->IsEntryExist(TE)) {
+					manager->TNTable->GetEntry(&TE);
+					memcpy(entry.PDD_DATA[0].PARTICIPANT_DATA, TE.TN_NEXTZONE, sizeof(TE.TN_NEXTZONE));
+					entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_RESPONSE;
+					printf("%s", entry.PDD_DATA[0].PARTICIPANT_DATA);
+
+					cout << "RESPONSE" << endl;
+				}else {
+					entry.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
+					cout << "NOT EXIST" << endl;
+				}
+			}
+
+			// 에코(데이터를준 클라이언트에 다시 데이터쏘기)
+			clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+
+			if (clientSocket == INVALID_SOCKET)
+				puts("clientSocket() error");
+
+			memset(&tempAddr, 0, sizeof(tempAddr));
+			tempAddr.sin_family = AF_INET;
+			tempAddr.sin_addr.S_un.S_addr = inet_addr(inet_ntoa(manager->recvData.back().first));
+			tempAddr.sin_port = htons(FES_PORT);
+
+			cout << inet_ntoa(manager->recvData.back().first) << endl;
+
+			if (connect(clientSocket, (SOCKADDR*)&tempAddr, sizeof(tempAddr)) == SOCKET_ERROR)
+				puts("connect() error!");
+
+			send(clientSocket, (char*)&entry, sizeof(entry), 0);
+
+			closesocket(clientSocket);
+
+			cout << "Send" << endl;
+			cout << "========================" << endl;
+			
+			//Deque에서 출력한 Request Pop
+			EnterCriticalSection(&manager->cs);
+			manager->recvData.pop_back();
+			LeaveCriticalSection(&manager->cs);
+		}
+	}
 }
