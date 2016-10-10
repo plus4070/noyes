@@ -60,7 +60,7 @@ namespace CNU_DDS
 
 		monitoring_data->data		= new_writer_data;
 		monitoring_data->locator	= locator;
-		reader_data_list->insertInRear(monitoring_data);
+		writer_data_list->insertInRear(monitoring_data);
 		condition_signal(&writer_condition);
 	}
 

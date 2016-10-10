@@ -10,17 +10,9 @@ using namespace std;
 
 namespace CNU_DDS
 {
-	void	initalizeTNSServer();
-	void	initalDomainForTNS();
-	void	start();
-	SOCKET	CreateSocket();
-	void	BindingSocket(SOCKET servSocket);
-	void	LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
-	void	StartReceving();
-	void	startServer();
-	void	endServer();
-
-	void initalFrontEndServer();
+	void	StartTopicNamingService(int startOption);
+	void	EndTopicNamingService();
+	void	InitialDomainForTNS();
 }
 
 #endif

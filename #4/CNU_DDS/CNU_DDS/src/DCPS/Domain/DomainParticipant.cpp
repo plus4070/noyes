@@ -1358,7 +1358,7 @@ namespace CNU_DDS
 		TransceiverManager*					tm	= TransceiverManager::getManagerInstance();
 		Transceiver*						transceiver;
 
-		Locator_t							locator	= {LOCATOR_KIND_UDPv4, related_rtps_participant->PORT_BASE_NUMBER + ( related_rtps_participant->DOMAIN_ID_GAIN * domain_id ) + related_rtps_participant->ADDITIONAL_OFFSET_D0, {0,0,0,0,0,0,0,0,0,0,0,0,239,255,0,1}/*"239.255.0.1"*/};
+		Locator_t							locator	= {LOCATOR_KIND_UDPv4, related_rtps_participant->PORT_BASE_NUMBER + ( related_rtps_participant->DOMAIN_ID_GAIN * domain_id ) + related_rtps_participant->ADDITIONAL_OFFSET_D0, {0,0,0,0,0,0,0,0,0,0,0,0,239,255,0,1 }/*"239.255.0.1"*/};
 
 		GUID_t								guid;
 

@@ -18,44 +18,6 @@ using namespace CNU_DDS;
 class TNSNController
 {
 public:
-
-	TNSNController();
-	~TNSNController();
-
-	void	startTNSServer();
-	void	closeTNSServer();
-	
-	void	initalizeSetting();
-	void	initalizeTNSServer();
-	void	initalizeServer();
-
-	SOCKET	CreateSocket();
-	void	BindingSocket(SOCKET servSocket);
-	void	LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
-	void	StartReceving();
-	void	endServer();
-
-	static UINT WINAPI receiving(LPVOID p);
-	static UINT WINAPI storing(LPVOID p);
-
-
-	void inputDummy(TNSTable * TNSPTable);
-	void initalFrontEndServer();
-
-	void GetSubscriptionData(Monitor * m);
-	void GetPublicationData(Monitor	* m);
-	void SetSubscriptionData(DomainParticipant	*domainPart);
-	void SetPublicationData(DomainParticipant *domainPart);
-
-
-	void setMoniter(Monitor * m);
-	void setDomainParticipant(DomainParticipant	*domainPart);
-
-	void checkMonitering();
-	void setTNSType(int type);
-	
-
-private:
 	int								TNS_TYPE;
 	SocketManager					* socketManager;
 	MessageHandler					* messageHandler;
@@ -64,19 +26,48 @@ private:
 	TNSTable						* TNST;
 	Monitor							* monitor;
 	DomainParticipant				* domainParticipant;
+	HANDLE							FrontEndService;
+	
+	TNSNController(int startOption);
+	~TNSNController();
 
-	void			distibuteTNSData();
-	bool			isReceviedDataExist();
-	bool			isParticipantDataExist();
-	void			inputDummyDataToDB();
-	void			DoTNSService();
+	void			StartTNSServer();
+	void			CloseTNSServer();
+	
+	void			Initialize();
+	void			InitialDDS();
+		
+	void			InputDummy(TNSTable * TNSPTable);
+
 	void			CollectDDSParticipant();
+	void			InputMonitoringData(MonitoringData * data, int type);
+
+	void			GetSubscriptionData(Monitor * m);
+	void			GetPublicationData(Monitor	* m);
+	void			SetSubscriptionData(DomainParticipant	*domainPart, PDD_NODE * pn);
+	void			SetPublicationData(DomainParticipant *domainPart, PDD_NODE * pn);
+
+	void			SetMoniter();
+	void			SetDomainParticipant(DomainParticipant	*domainPart);
+		
+	void			CheckMonitering();
+	void			SetTNSType(int type);
+	
+	void			DistibuteTNSData();
+	bool			IsReceviedDataExist();
+	bool			IsParticipantDataExist();
+	void			InputDummyDataToDB();
+
+	void			StartTNSServiceForFrontEndServer();
 	
 	void			ProcTerminalPacket(PDD_NODE *datagram);
 	void			ProcBackEndPacket(PDD_NODE *datagram);
 	void			ProcFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *data);
 
-	SOCKADDR_IN		getAddr(char * cp);
-	void			formationFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *data, SOCKADDR_IN *addr);
+
+	SOCKADDR_IN		GetAddr(char * cp);
+	void			FormationFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *data, SOCKADDR_IN *addr);
+
+	void			PrintDatagram(PDD_NODE *datagram, int type);
 };
 

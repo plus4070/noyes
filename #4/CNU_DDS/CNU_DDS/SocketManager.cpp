@@ -1,7 +1,7 @@
 #include "SocketManager.h"
 #include "TNSNheader.h"
 
-static UINT WINAPI receiving(LPVOID p);
+static UINT WINAPI Receiving(LPVOID p);
 
 SocketManager::SocketManager()
 {
@@ -14,23 +14,23 @@ SocketManager::~SocketManager()
 
 }
 
-void 							SocketManager::startRecevingThread() {
-	this->recvThread = (HANDLE)_beginthreadex(NULL, 0, receiving, (LPVOID)this, 0, NULL);
+void 							SocketManager::StartRecevingThread() {
+	this->recvThread = (HANDLE)_beginthreadex(NULL, 0, Receiving, (LPVOID)this, 0, NULL);
 }
 
-void 							SocketManager::closeRecevingThread() {
+void 							SocketManager::CloseRecevingThread() {
 	CloseHandle(recvThread);
 }
 
-void			 				SocketManager::setCriticalSection(CRITICAL_SECTION * criticlaSection) {
+void			 				SocketManager::SetCriticalSection(CRITICAL_SECTION * criticlaSection) {
 	this->cs = *criticlaSection;
 }
 
-void  							SocketManager::getRecevingDEQUE(deque<PDD_NODE> ** dq) {
+void  							SocketManager::GetRecevingDEQUE(deque<PDD_NODE> ** dq) {
 	*dq = &(this->recvData);
 }
 
-void							SocketManager::sendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port) {
+void							SocketManager::SendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port) {
 	SOCKET					Socket;
 	//SOCKADDR_IN			tempAddr;
 
@@ -41,14 +41,14 @@ void							SocketManager::sendPacket(char * TargetAddress, const char * Datagram
 		printf("ERROR CODE : %d\n", WSAGetLastError());
 	}
 
-	setSocketTargetAddress(&Socket, TargetAddress, port);
+	SetSocketTargetAddress(&Socket, TargetAddress, port);
 	//puts("a");
 	send(Socket, Datagram, SizeOfDatagram, 0);
 	//puts("b");
 	closesocket(Socket);
 }
 
-SOCKET 							SocketManager::createSocket() {
+SOCKET 							SocketManager::CreateSocket() {
 	// 소켓 생성 (성공시 핸들을, 실패시 "INVALID_SOCKET" 반환)
 	SOCKET servSock = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -59,7 +59,7 @@ SOCKET 							SocketManager::createSocket() {
 
 	return servSock;
 }
-void							SocketManager::setSocketTargetAddress(SOCKET * s, char * TargetAddress, int port) {
+void							SocketManager::SetSocketTargetAddress(SOCKET * s, char * TargetAddress, int port) {
 	SOCKADDR_IN			tempAddr;
 
 	memset(&tempAddr, 0, sizeof(tempAddr));
@@ -73,7 +73,7 @@ void							SocketManager::setSocketTargetAddress(SOCKET * s, char * TargetAddres
 	}
 }
 
-void							SocketManager::bindingSocket(SOCKET servSocket, int port) {
+void							SocketManager::BindingSocket(SOCKET servSocket, int port) {
 	// 소켓 통신을 위한 기본 정보
 	SOCKADDR_IN servAddr;
 
@@ -88,7 +88,7 @@ void							SocketManager::bindingSocket(SOCKET servSocket, int port) {
 	}
 }
 
-void 							SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
+void 							SocketManager::LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
 	//static void LinkingEvents(SOCKET servSock, int* sockNum, SOCKET sockArray[WSA_MAXIMUM_WAIT_EVENTS], WSAEVENT eventArray[WSA_MAXIMUM_WAIT_EVENTS]) {
 	// 이벤트 발생을 확인 (성공시 0, 실패시 "SOCKET_ERROR" 반환)
 	vector<SOCKET>::iterator sVec_it;
@@ -116,16 +116,16 @@ void 							SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<S
 	(*sockNum)++;
 }
 
-SOCKET							SocketManager::getRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
-	SOCKET s = this->createSocket();
+SOCKET							SocketManager::GetRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
+	SOCKET s = this->CreateSocket();
 
-	this->bindingSocket(s, port);
-	this->linkingEvents(s, sockNum, sockArray, eventArray);
+	this->BindingSocket(s, port);
+	this->LinkingEvents(s, sockNum, sockArray, eventArray);
 
 	return s;
 }
 
-void							SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) {
+void							SocketManager::InsertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) {
 	vector<SOCKET>::iterator	sVec_it = SocketArray->begin() + *idx;
 	vector<WSAEVENT>::iterator	eVec_it = EventArray->begin() + *idx;
 
@@ -135,7 +135,7 @@ void							SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketAr
 	(*idx)++;
 }
 
-void							SocketManager::deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
+void							SocketManager::DeleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
 	vector<SOCKET>::iterator sVec_it;
 	vector<WSAEVENT>::iterator eVec_it;
 
@@ -159,7 +159,7 @@ void SocketManager::AcceptProc(int idx, int * totalSocket, vector<SOCKET> * Sock
 	// 이벤트 발생 유무 확인(WSAEventSelect)
 	WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
 
-	insertSocketEvent(totalSocket, SocketArray, EventArray, hClntSock, newEvent);
+	InsertSocketEvent(totalSocket, SocketArray, EventArray, hClntSock, newEvent);
 
 	//Test Print Code
 	//printf("새로 연결된 소켓의 핸들 %d \n", hClntSock);
@@ -194,17 +194,17 @@ void	SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * Socke
 	// 배열 정리.
 	//printf("삭제 : %d\n", idx);
 
-	deleteSocketEvent(&idx, SocketArray, EventArray);
+	DeleteSocketEvent(&idx, SocketArray, EventArray);
 }
 
-void SocketManager::savePacketToDeque(CRITICAL_SECTION * cs, deque<PDD_NODE> * dq, PDD_NODE * pn, sockaddr_in addr) {
+void SocketManager::SavePacketToDeque(CRITICAL_SECTION * cs, deque<PDD_NODE> * dq, PDD_NODE * pn, sockaddr_in addr) {
 	EnterCriticalSection(cs);
 	dq->push_front(*pn);
 	LeaveCriticalSection(cs);
 }
 
 
-static				UINT WINAPI receiving(LPVOID p) {
+static				UINT WINAPI Receiving(LPVOID p) {
 	SocketManager		* manager = (SocketManager*)p;
 	
 	WSADATA				wsaData;
@@ -227,7 +227,7 @@ static				UINT WINAPI receiving(LPVOID p) {
 		puts("WSAStartup() error!");
 	}
 
-	hServSock = manager->getRecevingSocket(PORT, &sockTotal, &hSockArray, &hEventArray);
+	hServSock = manager->GetRecevingSocket(PORT, &sockTotal, &hSockArray, &hEventArray);
 
 	SOCKET * sockArray;
 	WSAEVENT * eventArray;
@@ -275,7 +275,7 @@ static				UINT WINAPI receiving(LPVOID p) {
 					//printf("%s", inet_ntoa(name.sin_addr));
 
 					if (strLen != -1) {
-						manager->savePacketToDeque(&(manager->cs), &(manager->recvData), &receiveData, name);
+						manager->SavePacketToDeque(&(manager->cs), &(manager->recvData), &receiveData, name);
 					}
 
 					//puts("Saved");

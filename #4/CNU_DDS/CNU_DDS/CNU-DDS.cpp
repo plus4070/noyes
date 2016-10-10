@@ -40,8 +40,20 @@ int main()
 
 	//DCPSTest();
 	//ThroughputTest();
-	
-	start();
+	//start();
+
+	int tnsOption = 0;
+	printf("[ 1 : Start Front-End Server / 2 : ThroughputTest Start\n");
+	printf(" input > ");
+	scanf("%d", &tnsOption);
+
+	StartTopicNamingService(tnsOption);
+
+	if (tnsOption == 2)
+		ThroughputTest();
+	//else
+		//ShapeTest();
+
 	//initalizeTNSServer();
 	
 	

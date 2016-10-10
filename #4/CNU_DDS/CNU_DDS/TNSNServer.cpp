@@ -23,7 +23,7 @@ namespace CNU_DDS
 	Monitor				*tnsMonitor;
 	DomainParticipant	*tnsDomainPart;
 
-	void initalDomainForTNS() {
+	void InitialDomainForTNS() {
 		unsigned long	domain_id = 0;
 
 		DomainParticipantQos*	part_qos;
@@ -108,15 +108,9 @@ namespace CNU_DDS
 		}
 	}
 
-	void start() {
-		initalDomainForTNS();
-
-		tnsMonitor = Monitor::getMonitorInstance();
-
-		controller = new TNSNController();
-		controller->initalizeSetting();
-		controller->setMoniter(tnsMonitor);
-		controller->setDomainParticipant(tnsDomainPart);
+	void StartTopicNamingService(int startOption) {
+		//initalDomainForTNS();
+		controller = new TNSNController(startOption);
 	}
 }
 

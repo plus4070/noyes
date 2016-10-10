@@ -136,6 +136,7 @@ void	ShapeTest()
 	i	= 1;
 	while(i!=0)
 	{
+
 	printf("\n");
 	printf("[1] create a datawriter\n");
 	printf("[0] exit\n");
@@ -169,6 +170,7 @@ void	ShapeTest()
 
 	create_thread(0, write_shapetype, (void*)writer);
 
+
 	int								reader_counter		= 0;
 	int								writer_counter		= 0;
 	MonitoringData*					monitoring_data		= NULL;
@@ -178,11 +180,12 @@ void	ShapeTest()
 
 	for(int i=0; i<100; i++)
 	{
-		native_sleep(1000);
+		native_sleep(100);
 
 		/* Subscriber Á¤º¸ */
 		while(monitoring_data = monitor->popReaderData())
 		{
+			
 			sub_data->Deserialize(monitoring_data->data);
 			sub_data->topic_name;
 			sub_data->type_name;
@@ -207,18 +210,20 @@ void	ShapeTest()
 		}
 
 		/* Subscriber Á¤º¸ »ðÀÔ */
-		sub_data->Deserialize(monitoring_data->data);
-		sub_data->unicast_locator_list->insertInRear(monitoring_data->locator);
-		part->_remote_datareader_is_discovered(sub_data);
+		//sub_data->Deserialize(monitoring_data->data);
+		//sub_data->unicast_locator_list->insertInRear(monitoring_data->locator);
+		//part->_remote_datareader_is_discovered(sub_data);
 		
 		/* Publisher Á¤º¸ »ðÀÔ */
-		pub_data->Deserialize(monitoring_data->data);
-		pub_data->unicast_locator_list->insertInRear(monitoring_data->locator);
-		part->_remote_datawriter_is_discovered(pub_data);
+		//pub_data->Deserialize(monitoring_data->data);
+		//pub_data->unicast_locator_list->insertInRear(monitoring_data->locator);
+		//part->_remote_datawriter_is_discovered(pub_data);
 
 
 		printf("[# of discovered reader] %d\n", reader_counter);
 		printf("[# of discovered writer] %d\n", writer_counter);
+		//reader_counter = 0;
+		//writer_counter = 0;
 	}
 
 	}

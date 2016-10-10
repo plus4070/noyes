@@ -1,48 +1,35 @@
 #include "TNSTable.h"
 
 TNSTable::TNSTable() {
-	resetTable();
+	ResetTable();
 }
 
 TNSTable::~TNSTable()
 {
 }
 
-void		TNSTable::resetTable() {
-	numOfRequests = 0;
+void		TNSTable::ResetTable() {
 	requestList.clear();
-	t_head = NULL;
+	this->CountOfID = 0;
 }
 
-void		TNSTable::addEntry(char topic[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], SOCKET s, int nodetype, int messagetype) {
+void		TNSTable::AddEntry(char topic[MAX_CHAR], char topictype[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], int nodetype, int messagetype) {
+	TNSP_ENTRY entry = MakeTopicNameEntry(topic, topictype, domain, addr, paddr, port, data, nodetype, messagetype);
 
-	TNSP_ENTRY entry = makeTopicNameEntry(topic, domain, addr, paddr, port, data, s, nodetype, messagetype);
-	PTNSP_NODE newNode = (PTNSP_NODE)malloc(sizeof(TNSP_NODE));
-
-	newNode->key = entry;
-	newNode->next = NULL;
-
-	if (t_head == NULL) {
-		t_head = newNode;
-	}
-	else {
-		newNode->next = t_head;
-		t_head = newNode;
-	}
-
-	newNode->key.TN_SPACE_STATE = STATE_SET;
-
-	numOfRequests++;
+	entry.TN_SPACE_STATE = STATE_SET;
+	requestList.push_back(entry);
+	CountOfID++;
 	return;
 }
 
 
-TNSP_ENTRY	TNSTable::makeTopicNameEntry(char topic[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], SOCKET s, int nodetype, int messagetype) {
-	vector<string> topicVector = splitTopic(topic);
+TNSP_ENTRY	TNSTable::MakeTopicNameEntry(char topic[MAX_CHAR], char topictype[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], int nodetype, int messagetype) {
+	vector<string> topicVector = SplitTopic(topic);
 
 	TNSP_ENTRY entry;
 	memcpy(entry.TN_SPACE_DOMAIN, domain, MAX_CHAR);
 	memcpy(entry.TN_SPACE_TOPIC, topic, MAX_CHAR);
+	memcpy(entry.TN_SPACE_TOPICTYPE, topictype, MAX_CHAR);
 	memcpy(entry.TN_SPACE_TOKEN, topicVector.at(0).c_str(), MAX_CHAR);
 	entry.TN_SPACE_PARTICIPANT_PORT = port;
 	entry.TN_SPACE_TOTAL_LEVEL = topicVector.size();
@@ -50,8 +37,7 @@ TNSP_ENTRY	TNSTable::makeTopicNameEntry(char topic[MAX_CHAR], char domain[MAX_CH
 	entry.TN_SPACE_STATE = STATE_NEW;
 	memcpy(entry.TN_SPACE_NEXTZONE_ADDR, addr, ADDRESS_SIZE);
 	memcpy(entry.TN_SPACE_PARTICIPANT_ADDR, paddr, ADDRESS_SIZE);
-	entry.TN_SPACE_ID = numOfRequests;
-	entry.TN_SPACE_CURRENT_SOCKET = s;
+	entry.TN_SPACE_ID = CountOfID;
 	entry.TN_SPACE_NODETYPE = nodetype;
 	memcpy(entry.TN_SPACE_DATA, data, MAX_DATA_SIZE);
 	entry.TN_SPACE_MESSAGETYPE = messagetype;
@@ -59,112 +45,71 @@ TNSP_ENTRY	TNSTable::makeTopicNameEntry(char topic[MAX_CHAR], char domain[MAX_CH
 	return entry;
 }
 
-void		TNSTable::removeEntry(int id) {
-	if (numOfRequests != 0) {
-		PTNSP_NODE currentNode = t_head;
-		PTNSP_NODE beforeNode = NULL;
-
-		if (numOfRequests == 1 && currentNode->key.TN_SPACE_ID == id)
-			t_head = NULL;
-		else {
-			while (currentNode->key.TN_SPACE_ID != id || currentNode->next != NULL) {
-				beforeNode = currentNode;
-				currentNode = currentNode->next;
-			}
-
-			if (currentNode->key.TN_SPACE_ID != id)
-				return;
-
-			beforeNode->next = currentNode->next;
-		}
-
-		free(currentNode);
-		numOfRequests--;
-	}
-}
-
-void		TNSTable::setEntry(int id, char addr[ADDRESS_SIZE], int state) {
-	if (numOfRequests != 0) {
-		PTNSP_NODE currentNode = t_head;
-
-		while (currentNode->key.TN_SPACE_ID != id || currentNode->next != NULL) {
-			currentNode = currentNode->next;
-		}
-
-		if (currentNode->key.TN_SPACE_ID == id) {
-			vector<string> topicVector = splitTopic(currentNode->key.TN_SPACE_TOPIC);
-
-			memcpy(currentNode->key.TN_SPACE_NEXTZONE_ADDR, addr, sizeof(addr));
-			currentNode->key.TN_SPACE_STATE = state;
-			if (currentNode->key.TN_SPACE_CURRENT_LEVEL == currentNode->key.TN_SPACE_TOTAL_LEVEL) {
-				currentNode->key.TN_SPACE_CURRENT_LEVEL++;
+void		TNSTable::RemoveEntry(int id) {
+	if (this->GetNumOfRequests() != 0) {
+		for (it = requestList.begin(); it != requestList.end();) {
+			if (it->TN_SPACE_ID == id) {
+				it = requestList.erase(it);
 			}
 			else {
-				memcpy(currentNode->key.TN_SPACE_TOKEN, topicVector.at(currentNode->key.TN_SPACE_CURRENT_LEVEL).c_str(), strlen(topicVector.at(currentNode->key.TN_SPACE_CURRENT_LEVEL).c_str()) + 1);
+				it++;
 			}
-
-			if (currentNode->key.TN_SPACE_CURRENT_LEVEL != currentNode->key.TN_SPACE_TOTAL_LEVEL)
-				currentNode->key.TN_SPACE_CURRENT_LEVEL++;
 		}
 	}
 }
 
-bool		TNSTable::isEntryExist(int state) {
-	if (numOfRequests == 0)
-		return false;
-	else {
-		PTNSP_NODE currentNode = t_head;
+void		TNSTable::SetEntry(int id, char addr[ADDRESS_SIZE], int state) {
+	if (this->GetNumOfRequests() != 0) {
+		for (it = requestList.begin(); it != requestList.end(); ++it) {
+			if (it->TN_SPACE_ID == id) {
+				vector<string> topicVector = SplitTopic(it->TN_SPACE_TOPIC);
 
+				memcpy(it->TN_SPACE_NEXTZONE_ADDR, addr, sizeof(addr));
+				it->TN_SPACE_STATE = state;
+				if (it->TN_SPACE_CURRENT_LEVEL == it->TN_SPACE_TOTAL_LEVEL) {
+					it->TN_SPACE_CURRENT_LEVEL++;
+				}
+				else {
+					memcpy(it->TN_SPACE_TOKEN, topicVector.at(it->TN_SPACE_CURRENT_LEVEL).c_str(), strlen(topicVector.at(it->TN_SPACE_CURRENT_LEVEL).c_str()) + 1);
+				}
 
-		while (currentNode != NULL) {
-			if (currentNode->key.TN_SPACE_STATE == state)
+				if (it->TN_SPACE_CURRENT_LEVEL != it->TN_SPACE_TOTAL_LEVEL){
+					it->TN_SPACE_CURRENT_LEVEL++;
+				}
+			}
+		}
+	}
+}
+
+bool		TNSTable::IsEntryExist(int state) {
+	if (this->GetNumOfRequests() != 0) {
+		for (it = requestList.begin(); it != requestList.end(); ++it) {
+			if (it->TN_SPACE_STATE == state) {
 				return true;
-
-			currentNode = currentNode->next;
+			}
 		}
+	}
+	return false;
+}
 
-		return false;
+PTNSP_ENTRY	TNSTable::GetEntry(int state) {
+	if (this->GetNumOfRequests() != 0) {
+		int count = 0;
+		for (it = requestList.begin(); it != requestList.end(); ++it, ++count) {
+			if (it->TN_SPACE_STATE == state) {
+				return &(requestList.at(count));
+			}
+		}
 	}
 }
 
-PTNSP_NODE	TNSTable::getEntry(int state) {
-	if (numOfRequests == 0)
-		return NULL;
-	else {
-		PTNSP_NODE currentNode = t_head;
-
-		while (currentNode != NULL) {
-			if (currentNode->key.TN_SPACE_STATE == state)
-				return currentNode;
-
-			currentNode = currentNode->next;
-		}
-
-		return NULL;
+void		TNSTable::TestShowAll() {
+	if (this->GetNumOfRequests() != 0) {
+		
 	}
 }
 
-void		TNSTable::testShowAll() {
-	if (numOfRequests != 0) {
-		PTNSP_NODE currentNode = t_head;
-
-		while (currentNode != NULL) {
-			cout << "ID \t : " << currentNode->key.TN_SPACE_ID << endl;
-			cout << "TOPIC \t : " << currentNode->key.TN_SPACE_TOPIC << endl;
-			cout << "TOKEN \t : " << currentNode->key.TN_SPACE_TOKEN << endl;
-			cout << "TL \t : " << currentNode->key.TN_SPACE_TOTAL_LEVEL << endl;
-			cout << "CL \t : " << currentNode->key.TN_SPACE_CURRENT_LEVEL << endl;
-			cout << "NA \t : " << currentNode->key.TN_SPACE_NEXTZONE_ADDR << endl;
-			cout << "STATE \t : " << currentNode->key.TN_SPACE_STATE << endl;
-			cout << "DATA \t : " << currentNode->key.TN_SPACE_DATA << endl;
-
-			currentNode = currentNode->next;
-		}
-	}
-
-}
-
-vector<string> TNSTable::splitTopic(const string & s) {
+vector<string> TNSTable::SplitTopic(const string & s) {
 	stringstream ss(s);
 	string item;
 	vector<string> tokens;
@@ -174,7 +119,7 @@ vector<string> TNSTable::splitTopic(const string & s) {
 	return tokens;
 }
 
-int		TNSTable::getNumOfRequests() {
+int		TNSTable::GetNumOfRequests() {
 	//return this->requestList.size();
-	return this->numOfRequests;
+	return this->requestList.size();
 }

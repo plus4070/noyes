@@ -55,12 +55,15 @@ namespace CNU_DDS
 		printf("Input Domain ID>");
 		scanf("%d", &domain_id);
 
+		fflush(stdin);
+
 		printf("\n");
 		printf("***** Select creating endpoint type *****\n");
 		printf("[1] DataWriter\n");
 		printf("[2] DataReader\n");
 		printf("[others] Exit\n");
 		printf("*****************************************\n");
+
 		printf("input>");
 		scanf("%d", &endpoint_type);
 

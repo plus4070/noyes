@@ -17,34 +17,34 @@ public:
 	CRITICAL_SECTION				cs;
 	deque<PDD_NODE>					recvData;
 
-	void			 				setCriticalSection(CRITICAL_SECTION *criticlaSection);
+	void			 				SetCriticalSection(CRITICAL_SECTION *criticlaSection);
 
-	void							startRecevingThread();
-	void							closeRecevingThread();
+	void							StartRecevingThread();
+	void							CloseRecevingThread();
 
-	SOCKET							getRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
+	SOCKET							GetRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
 
 	void							CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);
 	PDD_NODE						ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr);
 	void							AcceptProc(int idx, int *totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);
 	
-	void							savePacketToDeque(CRITICAL_SECTION * cs, deque<PDD_NODE>	* dq, PDD_NODE * pn, sockaddr_in addr);
-	void						 	getRecevingDEQUE(deque<PDD_NODE> ** dq);
-	void							sendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port);
+	void							SavePacketToDeque(CRITICAL_SECTION * cs, deque<PDD_NODE>	* dq, PDD_NODE * pn, sockaddr_in addr);
+	void						 	GetRecevingDEQUE(deque<PDD_NODE> ** dq);
+	void							SendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port);
 
 
 private:
 	HANDLE							recvThread;
 
-	void							setUIView();
-	SOCKET 							createSocket();
+	void							SetUIView();
+	SOCKET 							CreateSocket();
 
-	void							setSocketTargetAddress(SOCKET * s, char * TargetAddress, int port);
-	void							bindingSocket(SOCKET servSocket, int port);
-	static void 					linkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
+	void							SetSocketTargetAddress(SOCKET * s, char * TargetAddress, int port);
+	void							BindingSocket(SOCKET servSocket, int port);
+	static void 					LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
 	
-	void							insertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event);
-	void							deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);
+	void							InsertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event);
+	void							DeleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);
 
 };
 

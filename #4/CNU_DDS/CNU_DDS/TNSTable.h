@@ -9,25 +9,25 @@ using namespace std;
 class TNSTable
 {
 public:
-	int					numOfRequests;
-	vector<_TNSP_ENTRY>	requestList;
-	PTNSP_NODE			t_head;
+	int								CountOfID;
+	vector<_TNSP_ENTRY>				requestList;
+	vector<_TNSP_ENTRY>::iterator	it;
 
 	TNSTable();
 	~TNSTable();
 
-	void		resetTable();
+	void			ResetTable();
 
-	void		addEntry(char topic[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], SOCKET s, int nodetype, int messagetype);
-	void		removeEntry(int id);
-	void		setEntry(int id, char addr[ADDRESS_SIZE], int state);
-	TNSP_ENTRY	makeTopicNameEntry(char topic[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], SOCKET s, int nodetype, int messagetype);
+	void			AddEntry(char topic[MAX_CHAR], char topictype[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], int nodetype, int messagetype);
+	void			RemoveEntry(int id);
+	void			SetEntry(int id, char addr[ADDRESS_SIZE], int state);
+	TNSP_ENTRY		MakeTopicNameEntry(char topic[MAX_CHAR], char topictype[MAX_CHAR], char domain[MAX_CHAR], char addr[ADDRESS_SIZE], char paddr[ADDRESS_SIZE], int port, char data[MAX_DATA_SIZE], int nodetype, int messagetype);
 
-	bool		isEntryExist(int state);
-	PTNSP_NODE	getEntry(int state);
+	bool			IsEntryExist(int state);
+	PTNSP_ENTRY		GetEntry(int state);
 
-	void		testShowAll();
+	void			TestShowAll();
 
-	vector<string> splitTopic(const string & s);
-	int		getNumOfRequests();
+	vector<string>	SplitTopic(const string & s);
+	int				GetNumOfRequests();
 };

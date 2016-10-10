@@ -1,3 +1,5 @@
+
+#include <stdio.h>
 #include "TNSNController.h"
 #include "TNSNheader.h"
 
@@ -6,9 +8,22 @@
 #include "include/RTPS/Discovery/SEDPdiscoveredSubscriptionData.h"
 #include "include/Utility/Monitoring/Monitor.h"
 
+#include "include/DCPS/Domain/DomainParticipant.h"
+#include "include/DCPS/Publication/Publisher.h"
+#include "include/DCPS/Publication/DataWriter.h"
+#include "include/DCPS/Subscription/Subscriber.h"
+#include "include/DCPS/Subscription/DataReader.h"
+#include "include/DCPS/Topic/Topic.h"
 
-TNSNController::TNSNController()
+static				UINT WINAPI DoTNSService(LPVOID p);
+
+TNSNController::TNSNController(int startOption)
 {
+	this->TNS_TYPE = startOption;
+	if(startOption == SERVER_TYPE_FRONT_END)
+		InitialDDS();
+	
+	Initialize();
 }
 
 
@@ -17,30 +32,18 @@ TNSNController::~TNSNController()
 
 }
 
-void TNSNController::initalizeServer() {
-	printf("[ INITIALIZE [Front-End / DDS] SERVER ]\n\n");
-
-	printf("***** Select Program type *****\n");
-	printf("[1] TNS Front-End Server\n");
-	printf("[2] DDS Extended  Node\n");
-	printf("[others] Exit\n");
-	printf("******************************\n");
-	printf("input>");
-	scanf("%d", &(this->TNS_TYPE));
-}
-
 /*addtional Funciont Start*/
-void TNSNController::GetSubscriptionData(Monitor * m) {
-	Monitor						*monitor			= Monitor::getMonitorInstance();
+void			TNSNController::GetSubscriptionData(Monitor * m) {
+	//Monitor							*monitor			= Monitor::getMonitorInstance();
 	//Monitor							*monitor = m;
 	int								reader_counter = 0;
 	MonitoringData					*monitoring_data = NULL;
 	SEDPdiscoveredSubscriptionData	*sub_data = new SEDPdiscoveredSubscriptionData();
 
 	//for (int i = 0; i<100; i++)
-	for (int i = 0; i<5; i++) 
+	for (int i = 0; i<2; i++) 
 	{
-		native_sleep(1000);
+		native_sleep(500);
 
 		/* Subscriber 정보 */
 		while (monitoring_data = monitor->popReaderData())
@@ -58,20 +61,27 @@ void TNSNController::GetSubscriptionData(Monitor * m) {
 			std::cout << "TOPIC NAME		:	" << sub_data->topic_name << endl;
 			std::cout << "TYPE  NAME		:	" << sub_data->type_name << endl;
 			std::cout << "LOCATER ADDR		:	" << monitoring_data->locator->address << endl;
+			int ipv4_1 = 256 + monitoring_data->locator->address[12];
+			int ipv4_2 = 256 + monitoring_data->locator->address[13];
+			int ipv4_3 = 256 + monitoring_data->locator->address[14];
+			int ipv4_4 = 256 + monitoring_data->locator->address[15];
+			std::cout << "LOCATER ADDR		:	" << ipv4_1 << "," << ipv4_2 << "," << ipv4_3 << "," << ipv4_4 << endl;
 			std::cout << "LOCATER PORT		:	" << monitoring_data->locator->port << endl;
 			std::cout << "======================================================================" << endl;
+			InputMonitoringData(monitoring_data, NODE_TYPE_SUB);
 		}
+
 		printf("[# of discovered reader] %d\n", reader_counter);
 	}
 }
 
-void TNSNController::SetSubscriptionData(DomainParticipant	*domainPart) {
+void			TNSNController::SetSubscriptionData(DomainParticipant	*domainPart, PDD_NODE * pn) {
 	DomainParticipant				*part = domainPart;
 	int								reader_counter = 0;
 	MonitoringData					*monitoring_data = NULL;
 	SEDPdiscoveredSubscriptionData	*sub_data = new SEDPdiscoveredSubscriptionData();
 
-	for (int i = 0; i<100; i++)
+	for (int i = 0; i<pn->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA; i++)
 	{
 		native_sleep(1000);
 
@@ -81,24 +91,34 @@ void TNSNController::SetSubscriptionData(DomainParticipant	*domainPart) {
 				sub_data->Deserialize(monitoring_data->data);
 				sub_data->unicast_locator_list->insertInRear(monitoring_data->locator);
 				part->_remote_datareader_is_discovered(sub_data);
-
 			}
 		}
+		else {
+			//sub_data->Deserialize(pn->PDD_DATA[i].PARTICIPANT_DATA);
+			//sub_data->unicast_locator_list->insertInRear(monitoring_data->locator);
+			std::cout << "[GET SUBSCRIPTION DATA]===============================================" << endl;
+			//std::cout << "TOPIC NAME		:	" << pub_data->topic_name << endl;
+			//std::cout << "TYPE  NAME		:	" << pub_data->type_name << endl;
+			//std::cout << "LOCATER ADDR		:	" << monitoring_data->locator->address << endl;
+			//std::cout << "LOCATER PORT		:	" << monitoring_data->locator->port << endl;
+			std::cout << "======================================================================" << endl;
+		}
+
 		printf("[# of discovered reader] %d\n", reader_counter);
 	}
 }
 
-void TNSNController::GetPublicationData(Monitor	* m) {
-	Monitor							*monitor			= Monitor::getMonitorInstance();
+void			TNSNController::GetPublicationData(Monitor	* m) {
+	//Monitor							*monitor			= Monitor::getMonitorInstance();
 	//Monitor							*monitor = m;
 	int								writer_counter = 0;
 	MonitoringData					*monitoring_data = NULL;
 	SEDPdiscoveredPublicationData	*pub_data = new SEDPdiscoveredPublicationData();
 
 	//for (int i = 0; i<100; i++)
-	for (int i = 0; i<5; i++)
+	for (int i = 0; i<2; i++)
 	{
-		native_sleep(1000);
+		native_sleep(500);
 
 		/* Publisher 정보 */
 		while (monitoring_data = monitor->popWriterData())
@@ -117,15 +137,21 @@ void TNSNController::GetPublicationData(Monitor	* m) {
 			std::cout << "TOPIC NAME		:	" << pub_data->topic_name << endl;
 			std::cout << "TYPE  NAME		:	" << pub_data->type_name << endl;
 			std::cout << "LOCATER ADDR		:	" << monitoring_data->locator->address << endl;
+			int ipv4_1 = 256 + monitoring_data->locator->address[12];
+			int ipv4_2 = 256 + monitoring_data->locator->address[13];
+			int ipv4_3 = 256 + monitoring_data->locator->address[14];
+			int ipv4_4 = 256 + monitoring_data->locator->address[15];
+			std::cout << "LOCATER ADDR		:	" << ipv4_1 << "," << ipv4_2 << "," << ipv4_3 << "," << ipv4_4 << endl;
 			std::cout << "LOCATER PORT		:	" << monitoring_data->locator->port << endl;
 			std::cout << "======================================================================" << endl;
+			InputMonitoringData(monitoring_data, NODE_TYPE_PUB);
 		}
 
 		printf("[# of discovered writer] %d\n", writer_counter);
 	}
 }
 
-void TNSNController::SetPublicationData(DomainParticipant * domainPart) {
+void			TNSNController::SetPublicationData(DomainParticipant * domainPart, PDD_NODE * pn) {
 	//Monitor							*monitor = Monitor::getMonitorInstance();
 
 	DomainParticipant				*part = domainPart;
@@ -134,7 +160,7 @@ void TNSNController::SetPublicationData(DomainParticipant * domainPart) {
 	MonitoringData					*monitoring_data = NULL;
 	SEDPdiscoveredPublicationData	*pub_data = new SEDPdiscoveredPublicationData();
 
-	for (int i = 0; i<100; i++)
+	for (int i = 0; i<pn->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA; i++)
 	{
 		native_sleep(1000);
 
@@ -146,13 +172,23 @@ void TNSNController::SetPublicationData(DomainParticipant * domainPart) {
 				part->_remote_datawriter_is_discovered(pub_data);
 			}
 		}
+		else {
+			//pub_data->Deserialize(pn->PDD_DATA[i].PARTICIPANT_DATA);
+			//pub_data->unicast_locator_list->insertInRear(monitoring_data->locator);
+			std::cout << "[GET PUBLICATION DATA]================================================" << endl;
+			std::cout << "TOPIC NAME		:	" << pub_data->topic_name << endl;
+			std::cout << "TYPE  NAME		:	" << pub_data->type_name << endl;
+			std::cout << "LOCATER ADDR		:	" << monitoring_data->locator->address << endl;
+			std::cout << "LOCATER PORT		:	" << monitoring_data->locator->port << endl;
+			std::cout << "======================================================================" << endl;
+		}
 
 		printf("[# of discovered writer] %d\n", writer_counter);
 	}
 
 }
 
-void TNSNController::checkMonitering() {
+void			TNSNController::CheckMonitering() {
 	Monitor*	monitor = Monitor::getMonitorInstance();
 	int								reader_counter = 0;
 	int								writer_counter = 0;
@@ -209,80 +245,186 @@ void TNSNController::checkMonitering() {
 	}
 }
 
+void			TNSNController::InputMonitoringData(MonitoringData * data, int type) {
+	char ip[16];
+	sprintf(ip, "%d.%d.%d.%d", 256+data->locator->address[12], 256 + data->locator->address[13], 256 + data->locator->address[14], 256 + data->locator->address[15]);
+	printf("%s", ip);
+	if (type == NODE_TYPE_PUB) {
+		SEDPdiscoveredPublicationData	* _data = new SEDPdiscoveredPublicationData();
+		_data->Deserialize(data->data);
+		this->TNST->AddEntry((char *)_data->topic_name.c_str(), (char *)_data->type_name.c_str(), "DDS_1", "127.0.0.1", ip, data->locator->port, (char *)(data->data->data), NODE_TYPE_PUB, MESSAGE_TYPE_SAVE);
+	} else {
+		SEDPdiscoveredSubscriptionData	* _data = new SEDPdiscoveredSubscriptionData();
+		_data->Deserialize(data->data);
+		this->TNST->AddEntry((char *)_data->topic_name.c_str(), (char *)_data->type_name.c_str(), "DDS_1", "127.0.0.1", ip, data->locator->port, (char *)(data->data->data), NODE_TYPE_SUB, MESSAGE_TYPE_SAVE);
+	}
+}
 /*addtional Funciont End*/
 
-
-void TNSNController::setTNSType(int type) {
+void			TNSNController::SetTNSType(int type) {
 	this->TNS_TYPE = type;
 }
 
-void ErrorHandling(char *message)
-{
-	printf("%s", message);
-	//fputs(message, stderr);
-	//fputc('\n', stderr);
-	//exit(1);
-}
-
-void TNSNController::initalizeSetting() {
-	this->initalizeServer();
-
+void			TNSNController::Initialize() {
 	this->socketManager		= new SocketManager();
 	this->messageHandler	= new MessageHandler();
 	this->TNST				= new TNSTable();
 	
 	InitializeCriticalSection(&cs);
-	this->socketManager->setCriticalSection(&cs);
+	this->socketManager->SetCriticalSection(&cs);
 
-	inputDummy(this->TNST);
+	InputDummy(this->TNST);
 
-	if (this->TNS_TYPE == 1 || this->TNS_TYPE == 2)
-		this->startTNSServer();
-	else
-		return;
+	if (this->TNS_TYPE == SERVER_TYPE_FRONT_END) {
+		SetMoniter();
+	}
+
+	this->StartTNSServer();
 }
 
-void TNSNController::startTNSServer() {
-	this->socketManager->getRecevingDEQUE(&(this->recvData));
-	this->socketManager->startRecevingThread();
+void			TNSNController::InitialDDS(){
+	printf("[ Shape test about CNU DDS ]\n\n");
+
+	unsigned long	domain_id = 0;
+
+	DomainParticipantQos*	part_qos;
+	DomainParticipant*		part;
+	Topic*					topic;
+
+	PublisherQos*		pub_qos;
+	Publisher*			pub;
+	DataWriterQos*		writer_qos;
+	DataWriter*			writer;
+
+	this->monitor = Monitor::getMonitorInstance();
+	ByteStream*			stream;
+
+	int					i;
+	int color_type = 0;
+
+	part_qos = new DomainParticipantQos();
+	part_qos->entity_factory.auto_enable_created_entities = true;
+
+	part = new DomainParticipant(domain_id, 1);
+	part->set_qos(part_qos);
+
+	printf("DomainParticipant is created\n");
+
+	topic = new Topic("Square", "ShapeType");
+	topic->related_participant = part;
+
+	printf("Topic is created");
+
+
+	pub_qos = new PublisherQos();
+	part->get_default_publisher_qos(pub_qos);
+
+	pub_qos->entity_factory.auto_enable_created_entities = true;
+	pub_qos->presentation.access_scope = INSTANCE_PRESENTATION_QOS;
+	pub_qos->presentation.coherent_access = false;
+	pub_qos->presentation.ordered_access = false;
+
+	pub = part->create_publisher(pub_qos, NULL, 0x00000000);
+	pub->related_participant = part;
+	delete(pub_qos);
+
+	printf("Publisher is created\n"); 
+}
+
+void			TNSNController::StartTNSServer() {
+	this->socketManager->GetRecevingDEQUE(&(this->recvData));
+	this->socketManager->StartRecevingThread();
 	
 	//this->distibuteTNSData();
-	this->DoTNSService();
+	//this->DoTNSService();
+	
+	if (this->TNS_TYPE == SERVER_TYPE_FRONT_END) {
+		this->StartTNSServiceForFrontEndServer();
+	} else {
+		this->FrontEndService = (HANDLE)_beginthreadex(NULL, 0, DoTNSService, (LPVOID)this, 0, NULL);
+	}
 }
 
-void TNSNController::closeTNSServer() {
-	this->socketManager->closeRecevingThread();
+void			TNSNController::CloseTNSServer() {
+	this->socketManager->CloseRecevingThread();
 	DeleteCriticalSection(&cs);
 	recvData->clear();
 }
 
-void TNSNController::setMoniter(Monitor * m) {
-	this->monitor = m;
+void			TNSNController::SetMoniter() {
+	this->monitor = Monitor::getMonitorInstance();
 }
 
-void TNSNController::setDomainParticipant(DomainParticipant	*domainPart) {
+void			TNSNController::SetDomainParticipant(DomainParticipant	*domainPart) {
 	this->domainParticipant = domainPart;
 }
 
-bool TNSNController::isReceviedDataExist() {
+bool			TNSNController::IsReceviedDataExist() {
 	return this->recvData->size() == 0 ? false : true;
 }
 
-bool TNSNController::isParticipantDataExist() {
-	return this->TNS_TYPE == 1 && this->TNST->isEntryExist(STATE_SET);
+bool			TNSNController::IsParticipantDataExist() {
+	return this->TNS_TYPE == 1 && this->TNST->IsEntryExist(STATE_SET);
 }
 
-void TNSNController::DoTNSService() {
-	PTNSP_NODE					PTNSP;
+static			UINT WINAPI DoTNSService(LPVOID p){
+//void TNSNController::DoTNSService() {
+	TNSNController				* controller = (TNSNController*)p;;
+	PTNSP_ENTRY					PTNSP;
 	SOCKET						clientSocket;
 	deque<PDD_NODE>::iterator	it;
 	PDD_NODE					datagram;
 
 	
 	while (true) {
-		this->CollectDDSParticipant();
+		if(controller->TNS_TYPE == SERVER_TYPE_FRONT_END)
+			controller->CollectDDSParticipant();
 
-		while (isReceviedDataExist()) {
+		while (controller->IsReceviedDataExist()) {
+			datagram = controller->recvData->back();
+			switch (datagram.PDD_HEADER.MESSAGE_TYPE)
+			{
+			case MESSAGE_TYPE_RESPONSE:
+			case MESSAGE_TYPE_NOTEXIST:
+			case MESSAGE_TYPE_SAVEDONE:
+			case MESSAGE_TYPE_MODIFYDONE:
+			case MESSAGE_TYPE_REMOVEDONE:
+				controller->ProcBackEndPacket(&datagram);
+				break;
+			case MESSAGE_TYPE_SAVE:
+				controller->ProcTerminalPacket(&datagram);
+				break;
+			default:
+				printf("%d\n", datagram.PDD_HEADER.MESSAGE_TYPE);
+				puts("Wrong Packet!");
+				break;
+			}
+
+			EnterCriticalSection(&controller->cs);
+			controller->recvData->pop_back();
+			LeaveCriticalSection(&controller->cs);
+		}
+
+		if (controller->IsParticipantDataExist()) {
+			PTNSP = controller->TNST->GetEntry(STATE_SET);
+			controller->ProcFrontEndPacket(&datagram, PTNSP);
+		}
+	}
+}
+
+void			TNSNController::StartTNSServiceForFrontEndServer() {
+	//void TNSNController::DoTNSService() {
+	PTNSP_ENTRY					PTNSP;
+	SOCKET						clientSocket;
+	deque<PDD_NODE>::iterator	it;
+	PDD_NODE					datagram;
+
+
+	while (true) {
+		if (this->TNS_TYPE == SERVER_TYPE_FRONT_END)
+			this->CollectDDSParticipant();
+
+		while (this->IsReceviedDataExist()) {
 			datagram = this->recvData->back();
 			switch (datagram.PDD_HEADER.MESSAGE_TYPE)
 			{
@@ -291,10 +433,10 @@ void TNSNController::DoTNSService() {
 			case MESSAGE_TYPE_SAVEDONE:
 			case MESSAGE_TYPE_MODIFYDONE:
 			case MESSAGE_TYPE_REMOVEDONE:
-				ProcBackEndPacket(&datagram);
+				this->ProcBackEndPacket(&datagram);
 				break;
 			case MESSAGE_TYPE_SAVE:
-				ProcTerminalPacket(&datagram);
+				this->ProcTerminalPacket(&datagram);
 				break;
 			default:
 				printf("%d\n", datagram.PDD_HEADER.MESSAGE_TYPE);
@@ -303,132 +445,73 @@ void TNSNController::DoTNSService() {
 			}
 
 			EnterCriticalSection(&cs);
-			recvData->pop_back();
+			this->recvData->pop_back();
 			LeaveCriticalSection(&cs);
 		}
 
-		if (isParticipantDataExist()) {
-			PTNSP = TNST->getEntry(STATE_SET);
-
-			ProcFrontEndPacket(&datagram, &(PTNSP->key));
+		if (this->IsParticipantDataExist()) {
+			PTNSP = this->TNST->GetEntry(STATE_SET);
+			this->ProcFrontEndPacket(&datagram, PTNSP);
 		}
 	}
 }
 
-void TNSNController::CollectDDSParticipant() {
+void			TNSNController::CollectDDSParticipant() {
 	this->GetPublicationData(this->monitor);
 	this->GetSubscriptionData(this->monitor);
 }
 
-void TNSNController::ProcFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *data) {
+void			TNSNController::ProcFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *data) {
+	if (this->TNS_TYPE != SERVER_TYPE_FRONT_END)
+		return;
+
 	SOCKADDR_IN					tempAddr;
 	memset(datagram, 0, sizeof(PDD_NODE));
+	tempAddr = GetAddr(data->TN_SPACE_NEXTZONE_ADDR);
 
-	std::cout << "====================" << endl;
-	std::cout << "SEND MSG" << endl;
-	std::cout << "SEND Topic :" << data->TN_SPACE_TOPIC << endl;
-	std::cout << "SEND Token :" << data->TN_SPACE_TOKEN << endl;
-	std::cout << "SEND TokenLevel :" << data->TN_SPACE_CURRENT_LEVEL << " / " << data->TN_SPACE_TOTAL_LEVEL << endl;
-	/*
-	memset(&tempAddr, 0, sizeof(tempAddr));
-	tempAddr.sin_family = AF_INET;
-	tempAddr.sin_addr.S_un.S_addr = inet_addr(PTNSP->key.TN_SPACE_NEXTZONE_ADDR);
-	*/
-
-	tempAddr = getAddr(data->TN_SPACE_NEXTZONE_ADDR);
+	FormationFrontEndPacket(datagram, data, &tempAddr); //TNSN Table을 Datagram에 적재
 	
-	/*
-	if (PTNSP->key.TN_SPACE_TOTAL_LEVEL < PTNSP->key.TN_SPACE_CURRENT_LEVEL) {
-		tempAddr.sin_port = htons(TERMINAL_PORT);
-		Datagram.PDD_HEADER.MESSAGE_TYPE = PTNSP->key.TN_SPACE_MESSAGETYPE;
-		memcpy(Datagram.PDD_DATA[0].PARTICIPANT_DATA, PTNSP->key.TN_SPACE_DATA, MAX_DATA_SIZE);
-	}
-	else {
-		tempAddr.sin_port = htons(TNS_PORT);
-		Datagram.PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_REQUEST;
-	}
-
-	Datagram.PDD_HEADER.ID = PTNSP->key.TN_SPACE_ID;
-
-	Datagram.PDD_DATA[0].PARTICIPANT_NODE_TYPE = PTNSP->key.TN_SPACE_NODETYPE;
-
-	memcpy(Datagram.PDD_DATA[0].PARTICIPANT_DOMAIN_ID, PTNSP->key.TN_SPACE_DOMAIN, sizeof(PTNSP->key.TN_SPACE_DOMAIN));
-	memcpy(Datagram.PDD_DATA[0].PARTICIPANT_TOPIC, PTNSP->key.TN_SPACE_TOPIC, sizeof(PTNSP->key.TN_SPACE_TOPIC));
-	memcpy(Datagram.PDD_DATA[0].PARTICIPANT_IP, PTNSP->key.TN_SPACE_PARTICIPANT_ADDR, ADDRESS_SIZE);
-	itoa(PTNSP->key.TN_SPACE_CURRENT_LEVEL, Datagram.PDD_DATA[0].PARTICIPANT_DATA, 10);
-	Datagram.PDD_DATA[0].PARTICIPANT_PORT = PTNSP->key.TN_SPACE_PARTICIPANT_PORT;
-	Datagram.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA = 1;
-	*/
-	formationFrontEndPacket(datagram, data, &tempAddr);
-
-	std::cout << "SEND TYPE :" << datagram->PDD_HEADER.MESSAGE_TYPE << endl;
-	std::cout << "====================" << endl;
-
 	if (data->TN_SPACE_TOTAL_LEVEL < data->TN_SPACE_CURRENT_LEVEL) {
-		this->socketManager->sendPacket(data->TN_SPACE_NEXTZONE_ADDR, (const char *)datagram, sizeof(PDD_NODE), TERMINAL_PORT);
+		this->socketManager->SendPacket(data->TN_SPACE_NEXTZONE_ADDR, (const char *)datagram, sizeof(PDD_NODE), TERMINAL_PORT);
 	} else {
-		this->socketManager->sendPacket(data->TN_SPACE_NEXTZONE_ADDR, (const char *)datagram, sizeof(PDD_NODE), TNS_PORT);
+		this->socketManager->SendPacket(data->TN_SPACE_NEXTZONE_ADDR, (const char *)datagram, sizeof(PDD_NODE), TNS_PORT);
 	}
+
 	data->TN_SPACE_STATE = STATE_RESPONSE;
+
+	PrintDatagram(datagram, 1);
 }
 
-void TNSNController::ProcBackEndPacket(PDD_NODE *datagram) {
-	if (TNS_TYPE == 1) {
-		// 출력
-		std::cout << "======================================================================" << endl;
-		std::cout << "NUM OF DATA		:	" << datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
-		std::cout << "MESSAGE TYPE		:	" << datagram->PDD_HEADER.MESSAGE_TYPE << endl;
-		for (int k = 0; k < datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA; k++) {
-			std::cout << "**********************************************************************" << endl;
-			std::cout << "NODE TYPE			:	" << datagram->PDD_DATA[k].PARTICIPANT_NODE_TYPE << endl;
-			std::cout << "Domain ID			:	" << datagram->PDD_DATA[k].PARTICIPANT_DOMAIN_ID << endl;
-			std::cout << "TOPIC				:	" << datagram->PDD_DATA[k].PARTICIPANT_TOPIC << endl;
-			std::cout << "PARTICIPANT IP			:	" << datagram->PDD_DATA[k].PARTICIPANT_IP << endl;
-			std::cout << "PARTICIPANT PORT		:	" << datagram->PDD_DATA[k].PARTICIPANT_PORT << endl;
-			std::cout << "DATA				:	" << datagram->PDD_DATA[k].PARTICIPANT_DATA << endl;
-		}
-		std::cout << "======================================================================" << endl;
+void			TNSNController::ProcBackEndPacket(PDD_NODE *datagram) {
+	if (this->TNS_TYPE != SERVER_TYPE_FRONT_END){
+		return;
+	}
 
+	PrintDatagram(datagram, 2);
 
-		switch (datagram->PDD_HEADER.MESSAGE_TYPE)
-		{
-		case MESSAGE_TYPE_RESPONSE:
-			TNST->setEntry(datagram->PDD_HEADER.ID, datagram->PDD_DATA[0].PARTICIPANT_DATA, STATE_SET);
-			break;
-		case MESSAGE_TYPE_MODIFYDONE:
-		case MESSAGE_TYPE_SAVEDONE:
-		case MESSAGE_TYPE_REMOVEDONE:
-			TNST->removeEntry(datagram->PDD_HEADER.ID);
-			puts("SAVE Complete");
-			break;
-		default:
-			TNST->removeEntry(datagram->PDD_HEADER.ID);
-			puts("ERROR MSG");
-			break;
-		}
-	} else {
-		puts("Wrong Packet!");
+	switch (datagram->PDD_HEADER.MESSAGE_TYPE)
+	{
+	case MESSAGE_TYPE_RESPONSE:
+		TNST->SetEntry(datagram->PDD_HEADER.ID, datagram->PDD_DATA[0].PARTICIPANT_DATA, STATE_SET);
+		break;
+	case MESSAGE_TYPE_MODIFYDONE:
+	case MESSAGE_TYPE_SAVEDONE:
+	case MESSAGE_TYPE_REMOVEDONE:
+		TNST->RemoveEntry(datagram->PDD_HEADER.ID);
+		puts("SAVE Complete");
+		break;
+	default:
+		TNST->RemoveEntry(datagram->PDD_HEADER.ID);
+		puts("ERROR MSG");
+		break;
 	}
 }
 
-void TNSNController::ProcTerminalPacket(PDD_NODE *datagram) {
-	// 출력
-	std::cout << "======================================================================" << endl;
-	std::cout << "NUM OF DATA		:	" << datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
-	std::cout << "MESSAGE TYPE		:	" << datagram->PDD_HEADER.MESSAGE_TYPE << endl;
-	for (int k = 0; k < datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA; k++) {
-		std::cout << "**********************************************************************" << endl;
-		std::cout << "NODE TYPE			:	" << datagram->PDD_DATA[k].PARTICIPANT_NODE_TYPE << endl;
-		std::cout << "Domain ID			:	" << datagram->PDD_DATA[k].PARTICIPANT_DOMAIN_ID << endl;
-		std::cout << "TOPIC				:	" << datagram->PDD_DATA[k].PARTICIPANT_TOPIC << endl;
-		std::cout << "PARTICIPANT IP			:	" << datagram->PDD_DATA[k].PARTICIPANT_IP << endl;
-		std::cout << "PARTICIPANT PORT		:	" << datagram->PDD_DATA[k].PARTICIPANT_PORT << endl;
-		std::cout << "DATA				:	" << datagram->PDD_DATA[k].PARTICIPANT_DATA << endl;
-	}
-	std::cout << "======================================================================" << endl;
+void			TNSNController::ProcTerminalPacket(PDD_NODE *datagram) {
+	PrintDatagram(datagram, 3);
 }
 
-SOCKADDR_IN		TNSNController::getAddr(char * cp) {
+SOCKADDR_IN		TNSNController::GetAddr(char * cp) {
 	SOCKADDR_IN		tempAddr;
 	memset(&tempAddr, 0, sizeof(tempAddr));
 	tempAddr.sin_family = AF_INET;
@@ -436,8 +519,11 @@ SOCKADDR_IN		TNSNController::getAddr(char * cp) {
 	return tempAddr;
 }
 
-void TNSNController::formationFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *data, SOCKADDR_IN *addr) {
+void			TNSNController::FormationFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *data, SOCKADDR_IN *addr) {
 	memset(datagram, 0, sizeof(PDD_NODE));
+
+	datagram->PDD_HEADER.ID = data->TN_SPACE_ID;
+	datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA = 1;
 
 	if (data->TN_SPACE_TOTAL_LEVEL < data->TN_SPACE_CURRENT_LEVEL) {
 		addr->sin_port = htons(TERMINAL_PORT);
@@ -450,277 +536,47 @@ void TNSNController::formationFrontEndPacket(PDD_NODE *datagram, TNSP_ENTRY *dat
 		itoa(data->TN_SPACE_CURRENT_LEVEL, datagram->PDD_DATA[0].PARTICIPANT_DATA, 10);
 	}
 
-	datagram->PDD_HEADER.ID = data->TN_SPACE_ID;
-	datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA = 1;
-
 	datagram->PDD_DATA[0].PARTICIPANT_NODE_TYPE = data->TN_SPACE_NODETYPE;
 	memcpy(datagram->PDD_DATA[0].PARTICIPANT_DOMAIN_ID, data->TN_SPACE_DOMAIN, sizeof(data->TN_SPACE_DOMAIN));
 	memcpy(datagram->PDD_DATA[0].PARTICIPANT_TOPIC, data->TN_SPACE_TOPIC, sizeof(data->TN_SPACE_TOPIC));
+	memcpy(datagram->PDD_DATA[0].PARTICIPANT_TOPICTYPE, data->TN_SPACE_TOPICTYPE, sizeof(data->TN_SPACE_TOPICTYPE));
 	memcpy(datagram->PDD_DATA[0].PARTICIPANT_IP, data->TN_SPACE_PARTICIPANT_ADDR, ADDRESS_SIZE);
 	datagram->PDD_DATA[0].PARTICIPANT_PORT = data->TN_SPACE_PARTICIPANT_PORT;
 }
 
-/*
-void	StartReceving(){
-WSADATA wsaData;
-SOCKET hServSock;
-//SOCKET hSockArray[WSA_MAXIMUM_WAIT_EVENTS];
-vector<SOCKET> hSockArray; //소켓 핸들배열 - 연결 요청이 들어올 때마다 생성되는 소켓의 핸들을 이 배열에 저장. (최대64)
-SOCKET hClntSock;
-SOCKADDR_IN clntAddr;
-
-//WSAEVENT hEventArray[WSA_MAXIMUM_WAIT_EVENTS];	// 이벤트 배열
-vector<WSAEVENT> hEventArray;
-WSAEVENT newEvent;
-WSANETWORKEVENTS netEvents;
-
-PDD_NODE receiveData;
-
-int clntLen;
-int sockTotal = 0;
-int index, i;
-int strLen;
-
-InitializeCriticalSection(&cs);
-
-struct sockaddr_in name;
-int len = sizeof(name);
-
-// 윈속 초기화 (성공시 0, 실패시 에러 코드리턴)
-if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-ErrorHandling("WSAStartup() error!");
+void			TNSNController::InputDummy(TNSTable * TNSPTable) {
+	//this->TNSPTable->addEntry("Q/WW/EEE/RRRR/TTTTTT", "DDS_3", "127.0.0.1", "127.0.0.10", 1000, "DDS_TEST_DATA3", NULL, NODE_TYPE_PUB, MESSAGE_TYPE_SAVE);
+	//TNSPTable->addEntry("A/BB/CCC/DDDD/EEEEEE","TYPE_A", "DDS_1", "127.0.0.1", "127.0.0.20", 70, "CCCCCCC", NULL, NODE_TYPE_PUB, MESSAGE_TYPE_SAVE);
 }
 
-hServSock = CreateSocket();
-
-BindingSocket(hServSock);
-
-LinkingEvents(hServSock, &sockTotal, &hSockArray, &hEventArray);
-
-
-SOCKET * sockArray;
-WSAEVENT * eventArray;
-vector<SOCKET>::iterator sVec_it;
-vector<WSAEVENT>::iterator eVec_it;
-
-printf("START RECEIVING TEST\n");
-
-while (1)
-{
-sockArray = &hSockArray[0];
-eventArray = &hEventArray[0];
-
-// 이벤트 종류 구분하기(WSAWaitForMultipleEvents)
-index = WSAWaitForMultipleEvents(sockTotal, eventArray, FALSE, WSA_INFINITE, FALSE);
-index = index - WSA_WAIT_EVENT_0;
-
-for (i = index; i < sockTotal; i++)
-{
-index = WSAWaitForMultipleEvents(1, &eventArray[i], TRUE, 0, FALSE);
-
-if ((index == WSA_WAIT_FAILED || index == WSA_WAIT_TIMEOUT)) continue;
-else
-{
-index = i;
-WSAEnumNetworkEvents(sockArray[index], eventArray[index], &netEvents);
-
-
-// 초기 연결 요청의 경우.
-if (netEvents.lNetworkEvents & FD_ACCEPT)
-{
-if (netEvents.iErrorCode[FD_ACCEPT_BIT] != 0)
-{
-puts("Accept Error");
-break;
-}
-
-clntLen = sizeof(clntAddr);
-
-// 연결을 수락 (accept | 성공시 소켓핸들 실패시 "INVALID_SOCKET" 반환)
-hClntSock = accept(hSockArray.at(index), (SOCKADDR*)&clntAddr, &clntLen);
-
-// 이벤트 커널 오브젝트 생성(WSACreateEvent)
-newEvent = WSACreateEvent();
-
-// 이벤트 발생 유무 확인(WSAEventSelect)
-WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
-
-
-sVec_it = hSockArray.begin() + sockTotal;
-eVec_it = hEventArray.begin() + sockTotal;
-
-hSockArray.insert(sVec_it, hClntSock);
-hEventArray.insert(eVec_it, newEvent);
-//eventArray[sockTotal] = newEvent;
-//sockArray[sockTotal] = hClntSock;
-sockTotal++;
-
-printf("새로 연결된 소켓의 핸들 %d \n", hClntSock);
-printf("vector size = %d\n", hSockArray.size());
-printf("array  size : %d\n", sockTotal);
-}
-
-
-// 데이터 전송해올 경우.
-if (netEvents.lNetworkEvents & FD_READ)
-{
-if (netEvents.iErrorCode[FD_READ_BIT] != 0)
-{
-puts("Read Error");
-break;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//		서버 작업은 여기서 다하겠지..
-//
-// 데이터를 받음 (message에 받은 데이터를 담음)
-strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&receiveData, sizeof(_PDD_NODE), 0);
-
-if (getpeername(sockArray[index - WSA_WAIT_EVENT_0], (struct sockaddr *)&name, &len) != 0) {
-perror("getpeername Error");
-}
-
-
-//cout << inet_ntoa(name.sin_addr) << endl;
-//cout << sizeof(inet_ntoa(name.sin_addr)) << endl;
-
-if (strLen != -1) {
-// 출력
-cout << "======================================================================" << endl;
-cout << "NUM OF DATA		:	"<< receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
-for (int k = 0 ; k < receiveData.PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA ; k++){
-cout << "**********************************************************************" << endl;
-cout << "NODE TYPE			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_NODE_TYPE << endl;
-cout << "Domain ID			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_DOMAIN_ID << endl;
-cout << "TOPIC				:	"<< receiveData.PDD_DATA[k].PARTICIPANT_TOPIC << endl;
-cout << "PARTICIPANT IP			:	"<< receiveData.PDD_DATA[k].PARTICIPANT_IP << endl;
-cout << "PARTICIPANT PORT		:	"<< receiveData.PDD_DATA[k].PARTICIPANT_PORT << endl;
-cout << "DATA				:	"<< receiveData.PDD_DATA[k].PARTICIPANT_DATA << endl;
-}
-cout << "======================================================================" << endl;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
-}
-
-
-// 연결 종료 요청의 경우.
-if (netEvents.lNetworkEvents & FD_CLOSE)
-{
-if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0)
-{
-puts("Close Error");
-break;
-}
-
-WSACloseEvent(eventArray[index]);
-
-// 소켓 종류
-closesocket(sockArray[index]);
-printf("종료 된 소켓의 핸들 %d \n", sockArray[index]);
-
-sockTotal--;
-
-// 배열 정리.
-printf("삭제 : %d\n", index);
-sVec_it = hSockArray.begin() + index;
-hSockArray.erase(sVec_it);
-
-eVec_it = hEventArray.begin() + index;
-hEventArray.erase(eVec_it);
-
-//CompressSockets(hSockArray, index, sockTotal);
-//CompressEvents(hEventArray, index, sockTotal);
-}
-
-}//else
-}//for
-}//while
-
-// 할당 받은 리소스 반환.
-WSACleanup();
-
-DeleteCriticalSection(&cs);
-}
-*/
-void TNSNController::inputDummy(TNSTable * TNSPTable) {
-	//this->TNSPTable->addEntry("Q/WW/EEE/RRRR/TTTTTT", "DDS_3",
-	//	"127.0.0.1", "127.0.0.10", 1000, "DDS_TEST_DATA3", NULL, NODE_TYPE_PUB, MESSAGE_TYPE_SAVE);
-	TNSPTable->addEntry("A/BB/CCC/DDDD/EEEEEE", "DDS_1", "127.0.0.1", "127.0.0.20", 70, "CCCCCCC", NULL, NODE_TYPE_PUB, MESSAGE_TYPE_SAVE);
-}
-
-void TNSNController::initalFrontEndServer() {
-	int	test_type;
-	char topic[MAX_CHAR];
-	char domain[MAX_CHAR];
-	char nextzone[ADDRESS_SIZE];
-	char participantip[ADDRESS_SIZE];
-	int participantport;
-	char data[MAX_DATA_SIZE];
-	int pubsub;
-	int messageType;
-
-	printf("[ INITIALIZE Front-End SERVER ]\n\n");
-
-	printf("***** Select inital type *****\n");
-	printf("[1] Create Transmission Topic\n");
-	printf("[2] Input  Dummy        Topic\n");
-	printf("[3] Run	   Front-End	Server\n");
-	printf("[others] Exit\n");
-	printf("******************************\n");
-
-	printf("input>");
-	scanf("%d", &test_type);
-
-	if (test_type == 2) {
-		//inputDummy();
+void			TNSNController::PrintDatagram(PDD_NODE *datagram, int type) {
+	switch (type)
+	{
+	case 1:
+		std::cout << "[FRONT_END_PACKET]====================================================" << endl;
+		std::cout << "======================================================================" << endl;
+		break;
+	case 2:
+		std::cout << "[BACK_END_PACKET]=====================================================" << endl;
+		std::cout << "======================================================================" << endl;
+		break;
+	case 3:
+		std::cout << "[TERMINAL_PACKET]=====================================================" << endl;
+		std::cout << "======================================================================" << endl;
+		break;
 	}
-	else if (test_type == 3)
-		return;
-
-	while (test_type == 1) {
-
-		printf("input Topic>");
-		scanf("%s", topic);
-
-		printf("input Domain>");
-		scanf("%s", domain);
-
-		printf("input Next Zone IP>");
-		scanf("%s", nextzone);
-
-		printf("input Participant IP>");
-		scanf("%s", participantip);
-
-		printf("input Participant Port>");
-		scanf("%d", &participantport);
-
-		printf("input Sample Data>");
-		scanf("%s", data);
-
-		printf("input Pub/Sub Type (100 : PUB / 200 : SUB)>");
-		scanf("%d", &pubsub);
-
-		printf("input Message Type (10 : SAVE / 11 : REMOVE / 12 : MODIFY)>");
-		scanf("%d", &messageType);
-
-		//TNSPTable->addEntry(topic, domain, nextzone, participantip, participantport, data, NULL, pubsub, messageType);
-
-		printf("***** Select inital type *****\n");
-		printf("[1] Create Transmission Topic\n");
-		printf("[2] Input  Dummy        Topic\n");
-		printf("[3] Run	   Front-End	Server\n");
-		printf("[others] Exit\n");
-		printf("******************************\n");
-
-		printf("input>");
-		scanf("%d", &test_type);
+	
+	std::cout << "NUM OF DATA		:	" << datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA << endl;
+	std::cout << "MESSAGE TYPE		:	" << datagram->PDD_HEADER.MESSAGE_TYPE << endl;
+	for (int k = 0; k < datagram->PDD_HEADER.PARTICIPANT_NUMBER_OF_DATA; k++) {
+		std::cout << "**********************************************************************" << endl;
+		std::cout << "NODE TYPE			:	" << datagram->PDD_DATA[k].PARTICIPANT_NODE_TYPE << endl;
+		std::cout << "Domain ID			:	" << datagram->PDD_DATA[k].PARTICIPANT_DOMAIN_ID << endl;
+		std::cout << "TOPIC				:	" << datagram->PDD_DATA[k].PARTICIPANT_TOPIC << endl;
+		std::cout << "TOPIC	TYPE		:	" << datagram->PDD_DATA[k].PARTICIPANT_TOPICTYPE << endl;
+		std::cout << "PARTICIPANT IP			:	" << datagram->PDD_DATA[k].PARTICIPANT_IP << endl;
+		std::cout << "PARTICIPANT PORT		:	" << datagram->PDD_DATA[k].PARTICIPANT_PORT << endl;
+		std::cout << "DATA				:	" << datagram->PDD_DATA[k].PARTICIPANT_DATA << endl;
 	}
-
-	printf("[ Complete Inital Front-End SERVER ]\n\n");
+	std::cout << "======================================================================" << endl;
 }
