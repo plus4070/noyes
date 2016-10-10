@@ -15,6 +15,7 @@ public:
 	~TNSController();
 
 	void			startTNSServer();
+	void			closeTNSServer();
 
 private:
 	SocketManager					* socketManager;
@@ -26,7 +27,6 @@ private:
 	deque<pair<IN_ADDR, PDD_NODE>>	* recvData;
 
 	void 			initalizeSetting();
-	void			closeTNSServer();
 	void			distibuteTNSData();
 	bool			isReceviedDataExist();
 

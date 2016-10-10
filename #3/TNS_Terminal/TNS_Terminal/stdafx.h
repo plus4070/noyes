@@ -7,7 +7,7 @@
 
 #define MAX_CHAR		100
 #define MAX_DATA_SIZE	800
-#define MAX_PDD_NUMBER	25
+#define MAX_PDD_NUMBER	1
 #define BUFSIZE			1000
 #define NULL			0
 
@@ -28,13 +28,14 @@
 #define MESSAGE_TYPE_MODIFY			12
 
 #define MESSAGE_OPTION_PLUS_DONE	10
+
 #define MESSAGE_TYPE_SAVEDONE		20
 #define MESSAGE_TYPE_REMOVEDONE		21
 #define MESSAGE_TYPE_MODIFYDONE		22
 
 
-#define NODE_TYPE_PUB				100
-#define NODE_TYPE_SUB				200
+#define NODE_TYPE_PUB				100 //Writer
+#define NODE_TYPE_SUB				200 //Reader
 
 #define	FES_PORT					3000
 #define TERMINAL_PORT				3002	// 포트번호 할당
@@ -58,6 +59,7 @@ typedef struct _PDD_HEADER {
 typedef struct _PDD_DATA {
 	int						PARTICIPANT_NODE_TYPE;
 	char					PARTICIPANT_TOPIC[MAX_CHAR];
+	char					PARTICIPANT_TOPICTYPE[MAX_CHAR];
 	char					PARTICIPANT_DOMAIN_ID[MAX_CHAR];
 	char					PARTICIPANT_IP[ADDRESS_SIZE];
 	int						PARTICIPANT_PORT;

@@ -37,11 +37,11 @@ void			MessageHandler::setParticipantNumber(PDD_NODE *PN, int num) {
 }
 
 void			MessageHandler::setMessageTypeTopicNotExist(PDD_NODE *PN) {
-	PN->PDD_HEADER.MESSAGE_TYPE += MESSAGE_OPTION_PLUS_DONE;
+	PN->PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
 }
 
 void			MessageHandler::setMessageTypeProcessDone(PDD_NODE *PN) {
-	PN->PDD_HEADER.MESSAGE_TYPE = MESSAGE_TYPE_NOTEXIST;
+	PN->PDD_HEADER.MESSAGE_TYPE += MESSAGE_OPTION_PLUS_DONE;
 }
 
 void			MessageHandler::setMessageType(PDD_NODE *PN, int type) {

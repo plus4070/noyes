@@ -183,9 +183,9 @@ void SocketManager::AcceptProc(int idx, int * totalSocket, vector<SOCKET> * Sock
 	insertSocketEvent(totalSocket, SocketArray, EventArray, hClntSock, newEvent);
 
 	//Test Print Code
-	printf("새로 연결된 소켓의 핸들 %d \n", hClntSock);
-	printf("vector size = %d\n", SocketArray->size());
-	printf("array  size : %d\n", *totalSocket);
+	//printf("새로 연결된 소켓의 핸들 %d \n", hClntSock);
+	//printf("vector size = %d\n", SocketArray->size());
+	//printf("array  size : %d\n", *totalSocket);
 }
 
 PDD_NODE SocketManager::ReadProc(int idx, int * strLen, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, sockaddr_in * addr) {
@@ -208,12 +208,12 @@ void	SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * Socke
 
 	// 소켓 종류
 	closesocket(SocketArray->at(idx));
-	printf("종료 된 소켓의 핸들 %d \n", SocketArray->at(idx));
+	//printf("종료 된 소켓의 핸들 %d \n", SocketArray->at(idx));
 
 	(*totalSocket)--;
 
 	// 배열 정리.
-	printf("삭제 : %d\n", idx);
+	//printf("삭제 : %d\n", idx);
 
 	deleteSocketEvent(&idx, SocketArray, EventArray);
 }
@@ -227,6 +227,7 @@ void SocketManager::savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR,
 static							 UINT WINAPI receiving(LPVOID p) {
 	SocketManager		* manager = (SocketManager*)p;
 
+	WSADATA				wsaData;
 	PDD_NODE			receiveData;
 	SOCKET				hServSock;
 
@@ -240,6 +241,11 @@ static							 UINT WINAPI receiving(LPVOID p) {
 	int					index, i, strLen;
 	int					len = sizeof(name);
 
+
+	// 윈속 초기화 (성공시 0, 실패시 에러 코드리턴)
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		puts("WSAStartup() error!");
+	}
 	hServSock = manager->getRecevingSocket(TERMINAL_PORT, &sockTotal, &hSockArray, &hEventArray);
 
 	/*
@@ -293,18 +299,18 @@ static							 UINT WINAPI receiving(LPVOID p) {
 
 					receiveData = manager->ReadProc(index, &strLen, &hSockArray, &hEventArray, &name);
 
-					printf("%s", inet_ntoa(name.sin_addr));
+					//printf("%s", inet_ntoa(name.sin_addr));
 
 					if (strLen != -1) {
 						manager->savePacketToDeque(&(manager->cs), &(manager->recvData), &receiveData, name);
 					}
 
-					puts("Saved");
+					//puts("Saved");
 
 				} 
 
 				if (netEvents.lNetworkEvents & FD_CLOSE) {
-					puts("close socket");
+					//puts("close socket");
 					if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0) {
 						puts("Close Error");
 						break;

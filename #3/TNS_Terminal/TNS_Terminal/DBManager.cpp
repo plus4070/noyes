@@ -76,7 +76,7 @@ bool DBManager::isTopicExist(char * topic) {
 void DBManager::makeParticipantTable(char * topic) {
 	//printf("MAKE PARTICIPANT TABLE : %s\n", topic);
 	char query[800];
-	sprintf(query, "CREATE TABLE `participanttable_%s` (`Domain` VARCHAR(100) NOT NULL, `Type` INT NOT NULL, `IP` VARCHAR(16) NOT NULL,`Port` INT NOT NULL, `Data` VARCHAR(800) NOT NULL);", topic);
+	sprintf(query, "CREATE TABLE `participanttable_%s` (`Domain` VARCHAR(100) NOT NULL, `TopicType` VARCHAR(100) NOT NULL, `Type` INT NOT NULL, `IP` VARCHAR(16) NOT NULL,`Port` INT NOT NULL, `Data` VARCHAR(800) NOT NULL);", topic);
 	//printf(query);
 	mysql_query(this->connection, (const char *)query);
 }
@@ -223,8 +223,8 @@ list<PDD_DATA> DBManager::InsertEntry(PDD_DATA entry) {
 	int		state;
 	char    query[200];
 
-	sprintf(query, "INSERT INTO	`participanttable_%s` VALUES ('%s', %d, '%s', %d, '%s');", entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_NODE_TYPE, entry.PARTICIPANT_IP, entry.PARTICIPANT_PORT, entry.PARTICIPANT_DATA);
-	//printf("INSERT ENTRY :: %s\n", query);
+	sprintf(query, "INSERT INTO	`participanttable_%s` VALUES ('%s', '%s', %d, '%s', %d, '%s');", entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_TOPICTYPE, entry.PARTICIPANT_NODE_TYPE, entry.PARTICIPANT_IP, entry.PARTICIPANT_PORT, entry.PARTICIPANT_DATA);
+	printf("INSERT ENTRY :: %s\n", query);
 
 	state = executeQuery(query);
 	
@@ -285,7 +285,7 @@ list<PDD_DATA> DBManager::selectRelationEntry(PDD_DATA entry, int state) {
 	PDD_DATA data;
 
 	if (state != -1) {
-		sprintf(query, "SELECT * FROM `participanttable_%s` WHERE Domain = '%s' AND Type = %d;",  entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_NODE_TYPE == NODE_TYPE_PUB ? NODE_TYPE_SUB : NODE_TYPE_PUB);
+		sprintf(query, "SELECT * FROM `participanttable_%s` WHERE Domain = '%s' AND TopicType = '%s' AND Type = %d;",  entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_TOPICTYPE, entry.PARTICIPANT_NODE_TYPE == NODE_TYPE_PUB ? NODE_TYPE_SUB : NODE_TYPE_PUB);
 
 		//printf("SELECT OPPOSITE ENTRY :: %s\n", query);
 
@@ -295,14 +295,16 @@ list<PDD_DATA> DBManager::selectRelationEntry(PDD_DATA entry, int state) {
 			printf("GET DB DATA \n");
 			while ((sql_row = mysql_fetch_row(sql_result)) != NULL)
 			{
-				printf("%s, %d, %s, %d, %s\n", sql_row[0], atoi(sql_row[1]), sql_row[2], atoi(sql_row[3]), sql_row[4]);
+				//printf("%s, %s, %d, %s, %d, %s\n", sql_row[0], sql_row[1], atoi(sql_row[2]), sql_row[3], atoi(sql_row[4]), sql_row[5]);
 				memset(&data, 0, sizeof(PDD_DATA));
 				strcpy(data.PARTICIPANT_TOPIC, entry.PARTICIPANT_TOPIC);
 				strcpy(data.PARTICIPANT_DOMAIN_ID, sql_row[0]);
-				data.PARTICIPANT_NODE_TYPE = atoi(sql_row[1]);
-				strcpy(data.PARTICIPANT_IP, sql_row[2]);
-				data.PARTICIPANT_PORT = atoi(sql_row[3]);
-				memcpy(data.PARTICIPANT_DATA, sql_row[4], sizeof(sql_row[4]));
+				strcpy(data.PARTICIPANT_TOPICTYPE, sql_row[1]);
+				data.PARTICIPANT_NODE_TYPE = atoi(sql_row[2]);
+				strcpy(data.PARTICIPANT_IP, sql_row[3]);
+				data.PARTICIPANT_PORT = atoi(sql_row[4]);
+				memcpy(data.PARTICIPANT_DATA, sql_row[5], sizeof(sql_row[5]));
+				printf("%s, %s, %s, %d, %s, %d, %s\n", data.PARTICIPANT_TOPIC, data.PARTICIPANT_DOMAIN_ID, data.PARTICIPANT_TOPICTYPE, data.PARTICIPANT_NODE_TYPE, data.PARTICIPANT_IP, data.PARTICIPANT_PORT, data.PARTICIPANT_DATA);
 				sendList.push_back(data);
 			}
 			printf("GET DB DATA ------------------------------ \n");
