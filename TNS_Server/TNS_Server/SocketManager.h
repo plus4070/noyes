@@ -44,18 +44,11 @@ private:
 	HANDLE	recvThread;
 	HANDLE	sendThread;
 
-	void	SetUIView();
 	SOCKET	CreateSocket();
 
 	void	SetSocketTargetAddress(SOCKET * s, char * TargetAddress, int port);
 	void	BindingSocket(SOCKET servSocket, int PORT);
 	static void	LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray);
-
-	//receving
-	bool	IsWsaWaitERROR();
-
-	bool	AcceptConnection();
-	bool	CloseConnection();
 
 	void	InsertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event);
 	void	DeleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray);

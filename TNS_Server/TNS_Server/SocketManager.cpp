@@ -59,11 +59,6 @@ void SocketManager::SetCriticalSection(CRITICAL_SECTION * criticlaSection)
 	this->cs = *criticlaSection;
 }
 
-void SocketManager::SetUIView() 
-{
-
-}
-
 void SocketManager::SendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port)
 {
 	SOCKET Socket = socket(PF_INET, SOCK_STREAM, 0);
@@ -145,23 +140,6 @@ void SocketManager::LinkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> 
 	eventArray->insert(eVec_it, newEvent);
 
 	(*sockNum)++;
-}
-
-
-//receving
-bool SocketManager::IsWsaWaitERROR() 
-{
-	return false;
-}
-
-bool SocketManager::AcceptConnection() 
-{
-	return false;
-}
-
-bool SocketManager::CloseConnection() 
-{
-	return false;
 }
 
 void SocketManager::InsertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) 

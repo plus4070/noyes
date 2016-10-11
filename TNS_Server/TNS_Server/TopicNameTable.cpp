@@ -61,11 +61,6 @@ bool	TopicNameTable::AddEntry(TN_ENTRY entry){
 	return true;
 }
 
-bool	TopicNameTable::DeleteEntry(TN_ENTRY entry){
-
-	return false;
-}
-
 bool	TopicNameTable::GetEntry(TN_ENTRY *p_entry){
 	if (!IsEntryExist(*p_entry)) {
 		return false;
@@ -82,10 +77,6 @@ bool	TopicNameTable::GetEntry(TN_ENTRY *p_entry){
 			currentNode = currentNode->next;
 		}
 	}
-	return false;
-}
-
-bool	TopicNameTable::SetEntry(TN_ENTRY *p_entry){
 	return false;
 }
 

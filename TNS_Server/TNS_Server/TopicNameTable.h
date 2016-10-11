@@ -24,9 +24,7 @@ public:
 	void	ResetTable();
 	bool	IsEntryExist(TN_ENTRY entry);
 	bool	AddEntry(TN_ENTRY entry);
-	bool	DeleteEntry(TN_ENTRY entry);
 	bool	GetEntry(TN_ENTRY *p_entry);
-	bool	SetEntry(TN_ENTRY *p_entry);
 
 	void			TestShowAll();
 	vector<string>	SplitTopic(const string & s);
