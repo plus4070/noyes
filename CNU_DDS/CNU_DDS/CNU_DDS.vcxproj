@@ -1,0 +1,452 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D30EE3F5-C618-45F3-A5C5-880EE0ECCA14}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>CNU_DDS</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="application\BehaviorTest.cpp" />
+    <ClCompile Include="application\DCPS\DCPSTest.cpp" />
+    <ClCompile Include="application\DCPS\ShapeTest.cpp" />
+    <ClCompile Include="application\DCPS\TestListener.cpp" />
+    <ClCompile Include="application\DCPS\ThroughputListener.cpp" />
+    <ClCompile Include="application\DCPS\ThroughputTest.cpp" />
+    <ClCompile Include="application\DiscoveredDataTest.cpp" />
+    <ClCompile Include="application\ListenerTest.cpp" />
+    <ClCompile Include="application\ListTest.cpp" />
+    <ClCompile Include="application\MessageTest.cpp" />
+    <ClCompile Include="application\SharedPointerTest.cpp" />
+    <ClCompile Include="application\SocketTest.cpp" />
+    <ClCompile Include="application\TimerTest.cpp" />
+    <ClCompile Include="CNU-DDS.cpp" />
+    <ClCompile Include="MessageHandler.cpp" />
+    <ClCompile Include="SocketManager.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinParticipantsReaderListener.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinParticipantsWriterListener.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinPublicationsReader.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinPublicationsReaderListener.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinPublicationsWriter.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinPublicationsWriterListener.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinSubscriptionsReader.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinSubscriptionsReaderListener.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinSubscriptionsWriter.cpp" />
+    <ClCompile Include="src\DCPS\BuiltinEntity\BuiltinSubscriptionsWriterListener.cpp" />
+    <ClCompile Include="src\DCPS\Domain\DomainParticipant.cpp" />
+    <ClCompile Include="src\DCPS\Domain\DomainParticipantFactory.cpp" />
+    <ClCompile Include="src\DCPS\Infrastructure\DomainEntity.cpp" />
+    <ClCompile Include="src\DCPS\Infrastructure\Entity.cpp" />
+    <ClCompile Include="src\DCPS\Infrastructure\Type\Duration_t.cpp" />
+    <ClCompile Include="src\DCPS\Publication\DataWriter.cpp" />
+    <ClCompile Include="src\DCPS\Publication\Publisher.cpp" />
+    <ClCompile Include="src\DCPS\Subscription\DataReader.cpp" />
+    <ClCompile Include="src\DCPS\Subscription\Subscriber.cpp" />
+    <ClCompile Include="src\DCPS\Topic\ContentFilteredTopic.cpp" />
+    <ClCompile Include="src\DCPS\Topic\MultiTopic.cpp" />
+    <ClCompile Include="src\DCPS\Topic\Topic.cpp" />
+    <ClCompile Include="src\DCPS\Topic\TopicDescription.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\DeadlineQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\DestinationOrderQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\DurabilityQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\DurabilityServiceQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\EntityFactoryQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\GroupDataQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\HistoryQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\LatencyBudgetQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\LifespanQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\LivelinessQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\OwnershipQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\OwnershipStrengthQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\PartitionQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\PresentationQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\QosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\ReaderDataLifecycleQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\ReliabilityQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\ResourceLimitsQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\TimeBasedFilterQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\TopicDataQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\TransportPriorityQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\UserDataQosPolicy.cpp" />
+    <ClCompile Include="src\QoS\QosPolicy\WriterDataLifecycleQosPolicy.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\DataStructure\ChangeForReaderList.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\DataStructure\ChangeFromWriterList.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\ListenerProcessor.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\ReaderLocator.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\ReaderProxy.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\StatefulReader.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\StatefulWriter.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\StatelessReader.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\StatelessWriter.cpp" />
+    <ClCompile Include="src\RTPS\Behavior\WriterProxy.cpp" />
+    <ClCompile Include="src\RTPS\Discovery\SEDPdiscoveredPublicationData.cpp" />
+    <ClCompile Include="src\RTPS\Discovery\SEDPdiscoveredSubscriptionData.cpp" />
+    <ClCompile Include="src\RTPS\Discovery\SEDPdiscoveredTopicData.cpp" />
+    <ClCompile Include="src\RTPS\Discovery\SPDPdiscoveredParticipantData.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Message.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\AckNack.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\Data.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\DataFrag.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\Gap.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\Heartbeat.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\HeartbeatFrag.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\InfoDestination.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\InfoReply.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\InfoSource.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\InfoTimestamp.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\NackFrag.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Submessages\Pad.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Type\ByteStream.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Type\FragmentNumber_t.cpp" />
+    <ClCompile Include="src\RTPS\Messages\Type\ProtocolId_t.cpp" />
+    <ClCompile Include="src\RTPS\Structure\CacheChange.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Endpoint.cpp" />
+    <ClCompile Include="src\RTPS\Structure\HistoryCache.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Participant.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Reader.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Type\EntityId_t.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Type\GuidPrefix_t.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Type\GUID_t.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Type\Locator_t.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Type\SequenceNumber_t.cpp" />
+    <ClCompile Include="src\RTPS\Structure\Writer.cpp" />
+    <ClCompile Include="src\Status\Condition\StatusCondition.cpp" />
+    <ClCompile Include="src\Status\WaitSet.cpp" />
+    <ClCompile Include="src\Utility\EventProcessor\Event.cpp" />
+    <ClCompile Include="src\Utility\EventProcessor\EventProcessor.cpp" />
+    <ClCompile Include="src\Utility\Monitoring\Monitor.cpp" />
+    <ClCompile Include="src\Utility\Network\NetworkManager.cpp" />
+    <ClCompile Include="src\Utility\Network\SimpleLinkedList.cpp" />
+    <ClCompile Include="src\Utility\Network\Transceiver.cpp" />
+    <ClCompile Include="src\Utility\Network\TransceiverInfo.cpp" />
+    <ClCompile Include="src\Utility\Network\TransceiverManager.cpp" />
+    <ClCompile Include="src\Utility\Network\UDPSocket.cpp" />
+    <ClCompile Include="src\Utility\PlatformOrientedInterface.cpp" />
+    <ClCompile Include="src\Utility\SystemInformation.cpp" />
+    <ClCompile Include="src\Utility\Timer\DynamicTimer.cpp" />
+    <ClCompile Include="src\Utility\Timer\ListHeader.cpp" />
+    <ClCompile Include="src\Utility\Timer\TimerEffector.cpp" />
+    <ClCompile Include="src\Utility\Timer\TimeUnit.cpp" />
+    <ClCompile Include="TNSNController.cpp" />
+    <ClCompile Include="TNSNServer.cpp" />
+    <ClCompile Include="TNSTable.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="application\BehaviorTest.h" />
+    <ClInclude Include="application\DCPS\DCPSTest.h" />
+    <ClInclude Include="application\DCPS\ShapeTest.h" />
+    <ClInclude Include="application\DCPS\TestListener.h" />
+    <ClInclude Include="application\DCPS\ThroughputListener.h" />
+    <ClInclude Include="application\DCPS\ThroughputTest.h" />
+    <ClInclude Include="application\DiscoveredDataTest.h" />
+    <ClInclude Include="application\ListenerTest.h" />
+    <ClInclude Include="application\ListTest.h" />
+    <ClInclude Include="application\MessageTest.h" />
+    <ClInclude Include="application\SharedPointerTest.h" />
+    <ClInclude Include="application\SocketTest.h" />
+    <ClInclude Include="application\TimerTest.h" />
+    <ClInclude Include="include\BuiltinTopic\ParticipantBuiltinTopicData.h" />
+    <ClInclude Include="include\BuiltinTopic\PublicationBuiltinTopicData.h" />
+    <ClInclude Include="include\BuiltinTopic\SubscriptionBuiltinTopicData.h" />
+    <ClInclude Include="include\BuiltinTopic\TopicBuiltinTopicData.h" />
+    <ClInclude Include="include\BuiltinTopic\Type\BuiltinTopicKey_t.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinParticipantsReaderListener.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinParticipantsWriterListener.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinPublicationsReader.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinPublicationsReaderListener.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinPublicationsWriter.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinPublicationsWriterListener.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinSubscriptionsReader.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinSubscriptionsReaderListener.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinSubscriptionsWriter.h" />
+    <ClInclude Include="include\DCPS\BuiltinEntity\BuiltinSubscriptionsWriterListener.h" />
+    <ClInclude Include="include\DCPS\Domain\DomainParticipant.h" />
+    <ClInclude Include="include\DCPS\Domain\DomainParticipantFactory.h" />
+    <ClInclude Include="include\DCPS\Domain\DomainParticipantListener.h" />
+    <ClInclude Include="include\DCPS\Domain\Type\TopicLookupHandle.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\DomainEntity.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\Entity.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\Type\BasicDefinitions.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\Type\DomainId_t.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\Type\Duration_t.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\Type\InstanceHandle_t.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\Type\ReturnCode_t.h" />
+    <ClInclude Include="include\DCPS\Infrastructure\Type\Time_t.h" />
+    <ClInclude Include="include\DCPS\Publication\DataWriter.h" />
+    <ClInclude Include="include\DCPS\Publication\DataWriterListener.h" />
+    <ClInclude Include="include\DCPS\Publication\Publisher.h" />
+    <ClInclude Include="include\DCPS\Publication\PublisherListener.h" />
+    <ClInclude Include="include\DCPS\Subscription\DataReader.h" />
+    <ClInclude Include="include\DCPS\Subscription\DataReaderListener.h" />
+    <ClInclude Include="include\DCPS\Subscription\DataSample.h" />
+    <ClInclude Include="include\DCPS\Subscription\SampleInfo.h" />
+    <ClInclude Include="include\DCPS\Subscription\Subscriber.h" />
+    <ClInclude Include="include\DCPS\Subscription\SubscriberListener.h" />
+    <ClInclude Include="include\DCPS\Topic\ContentFilteredTopic.h" />
+    <ClInclude Include="include\DCPS\Topic\DDS_Data.h" />
+    <ClInclude Include="include\DCPS\Topic\MultiTopic.h" />
+    <ClInclude Include="include\DCPS\Topic\Topic.h" />
+    <ClInclude Include="include\DCPS\Topic\TopicDescription.h" />
+    <ClInclude Include="include\DCPS\Topic\TopicListener.h" />
+    <ClInclude Include="include\DCPS\Topic\TypeSupport.h" />
+    <ClInclude Include="include\QoS\EntityQos\DataReaderQos.h" />
+    <ClInclude Include="include\QoS\EntityQos\DataWriterQos.h" />
+    <ClInclude Include="include\QoS\EntityQos\DomainParticipantFactoryQos.h" />
+    <ClInclude Include="include\QoS\EntityQos\DomainParticipantQos.h" />
+    <ClInclude Include="include\QoS\EntityQos\EntityQos.h" />
+    <ClInclude Include="include\QoS\EntityQos\PublisherQos.h" />
+    <ClInclude Include="include\QoS\EntityQos\SubscriberQos.h" />
+    <ClInclude Include="include\QoS\EntityQos\TopicQos.h" />
+    <ClInclude Include="include\QoS\QosPolicies.h" />
+    <ClInclude Include="include\QoS\QosPolicy\DeadlineQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\DestinationOrderQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\DurabilityQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\DurabilityServiceQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\EntityFactoryQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\GroupDataQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\HistoryQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\LatencyBudgetQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\LifespanQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\LivelinessQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\OwnershipQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\OwnershipStrengthQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\PartitionQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\PresentationQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\QosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\ReaderDataLifecycleQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\ReliabilityQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\ResourceLimitsQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\TimeBasedFilterQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\TopicDataQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\TransportPriorityQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\UserDataQosPolicy.h" />
+    <ClInclude Include="include\QoS\QosPolicy\WriterDataLifecycleQosPolicy.h" />
+    <ClInclude Include="include\RTPS\Behavior\ChangeForReader.h" />
+    <ClInclude Include="include\RTPS\Behavior\ChangeFromWriter.h" />
+    <ClInclude Include="include\RTPS\Behavior\DataStructure\ChangeForReaderList.h" />
+    <ClInclude Include="include\RTPS\Behavior\DataStructure\ChangeFromWriterList.h" />
+    <ClInclude Include="include\RTPS\Behavior\ListenerProcessor.h" />
+    <ClInclude Include="include\RTPS\Behavior\ReaderLocator.h" />
+    <ClInclude Include="include\RTPS\Behavior\ReaderProxy.h" />
+    <ClInclude Include="include\RTPS\Behavior\StatefulReader.h" />
+    <ClInclude Include="include\RTPS\Behavior\StatefulWriter.h" />
+    <ClInclude Include="include\RTPS\Behavior\StatelessReader.h" />
+    <ClInclude Include="include\RTPS\Behavior\StatelessWriter.h" />
+    <ClInclude Include="include\RTPS\Behavior\Type\ChangeForReaderStatusKind.h" />
+    <ClInclude Include="include\RTPS\Behavior\Type\ChangeFromWriterStatusKind.h" />
+    <ClInclude Include="include\RTPS\Behavior\Type\ReaderState.h" />
+    <ClInclude Include="include\RTPS\Behavior\Type\WriterState.h" />
+    <ClInclude Include="include\RTPS\Behavior\WriterProxy.h" />
+    <ClInclude Include="include\RTPS\Discovery\DiscoveredEntityData\DiscoveredParticipantData.h" />
+    <ClInclude Include="include\RTPS\Discovery\DiscoveredEntityData\DiscoveredReaderData.h" />
+    <ClInclude Include="include\RTPS\Discovery\DiscoveredEntityData\DiscoveredTopicData.h" />
+    <ClInclude Include="include\RTPS\Discovery\DiscoveredEntityData\DiscoveredWriterData.h" />
+    <ClInclude Include="include\RTPS\Discovery\ParticipantProxy.h" />
+    <ClInclude Include="include\RTPS\Discovery\SEDPdiscoveredPublicationData.h" />
+    <ClInclude Include="include\RTPS\Discovery\SEDPdiscoveredSubscriptionData.h" />
+    <ClInclude Include="include\RTPS\Discovery\SEDPdiscoveredTopicData.h" />
+    <ClInclude Include="include\RTPS\Discovery\SPDPdiscoveredParticipantData.h" />
+    <ClInclude Include="include\RTPS\Discovery\Type\BuiltinEndpointSet_t.h" />
+    <ClInclude Include="include\RTPS\Discovery\Type\ContentFilterInfo_t.h" />
+    <ClInclude Include="include\RTPS\Discovery\Type\ContentFilterProperty_t.h" />
+    <ClInclude Include="include\RTPS\Discovery\Type\FilterResult_t.h" />
+    <ClInclude Include="include\RTPS\Discovery\Type\FilterSignature_t.h" />
+    <ClInclude Include="include\RTPS\Messages\Header.h" />
+    <ClInclude Include="include\RTPS\Messages\Message.h" />
+    <ClInclude Include="include\RTPS\Messages\Receiver.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessage.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\Count.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\EntityId.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\FragmentNumber.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\FragmentNumberSet.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\GuidPrefix.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\InclusionsOfSubmessageElement.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\LocatorList.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\Parameter.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\ParameterList.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\ProtocolVersion.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\SequenceNumber.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\SequenceNumberSet.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\SerializedData.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\SerializedDataFragment.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\SubmessageElement.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\Timestamp.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageElements\VendorId.h" />
+    <ClInclude Include="include\RTPS\Messages\SubmessageHeader.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\AckNack.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\Data.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\DataFrag.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\Gap.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\Heartbeat.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\HeartbeatFrag.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\InfoDestination.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\InfoReply.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\InfoSource.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\InfoTimestamp.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\NackFrag.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\Pad.h" />
+    <ClInclude Include="include\RTPS\Messages\Submessages\Submessages.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\ByteOrderingType.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\ByteStream.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\Count_t.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\FragmentNumber_t.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\ParameterId_t.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\ProtocolId_t.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\SubmessageFlag.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\SubmessageKind.h" />
+    <ClInclude Include="include\RTPS\Messages\Type\Time_t.h" />
+    <ClInclude Include="include\RTPS\Structure\CacheChange.h" />
+    <ClInclude Include="include\RTPS\Structure\Endpoint.h" />
+    <ClInclude Include="include\RTPS\Structure\HistoryCache.h" />
+    <ClInclude Include="include\RTPS\Structure\Participant.h" />
+    <ClInclude Include="include\RTPS\Structure\Reader.h" />
+    <ClInclude Include="include\RTPS\Structure\RTPSEntity.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\ChangeKind_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\DDS_Data.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\Duration_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\EntityEvent.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\EntityId_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\GuidPrefix_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\GUID_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\InstanceHandle_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\Locator_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\ProtocolVersion_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\ReliabilityKind_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\SequenceNumber_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\TopicKind_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Type\VendorId_t.h" />
+    <ClInclude Include="include\RTPS\Structure\Writer.h" />
+    <ClInclude Include="include\Status\Condition\Condition.h" />
+    <ClInclude Include="include\Status\Condition\GuardCondition.h" />
+    <ClInclude Include="include\Status\Condition\InclusionsOfConditions.h" />
+    <ClInclude Include="include\Status\Condition\QueryCondition.h" />
+    <ClInclude Include="include\Status\Condition\ReadCondition.h" />
+    <ClInclude Include="include\Status\Condition\StatusCondition.h" />
+    <ClInclude Include="include\Status\EntityStatus\DataReaderStatus.h" />
+    <ClInclude Include="include\Status\EntityStatus\DataWriterStatus.h" />
+    <ClInclude Include="include\Status\EntityStatus\DomainParticipantStatus.h" />
+    <ClInclude Include="include\Status\EntityStatus\EntityStatus.h" />
+    <ClInclude Include="include\Status\EntityStatus\PublisherStatus.h" />
+    <ClInclude Include="include\Status\EntityStatus\SubscriberStatus.h" />
+    <ClInclude Include="include\Status\EntityStatus\TopicStatus.h" />
+    <ClInclude Include="include\Status\Listener.h" />
+    <ClInclude Include="include\Status\Status\InclusionsOfStatuses.h" />
+    <ClInclude Include="include\Status\Status\InconsistentTopicStatus.h" />
+    <ClInclude Include="include\Status\Status\LivelinessChangedStatus.h" />
+    <ClInclude Include="include\Status\Status\LivelinessLostStatus.h" />
+    <ClInclude Include="include\Status\Status\OfferedDeadlineMissedStatus.h" />
+    <ClInclude Include="include\Status\Status\OfferedIncompatibleQosStatus.h" />
+    <ClInclude Include="include\Status\Status\PublicationMatchedStatus.h" />
+    <ClInclude Include="include\Status\Status\QosPolicyCount.h" />
+    <ClInclude Include="include\Status\Status\RequestedDeadlineMissedStatus.h" />
+    <ClInclude Include="include\Status\Status\RequestedIncompatibleQosStatus.h" />
+    <ClInclude Include="include\Status\Status\SampleLostStatus.h" />
+    <ClInclude Include="include\Status\Status\SampleRejectedStatus.h" />
+    <ClInclude Include="include\Status\Status\Status.h" />
+    <ClInclude Include="include\Status\Status\SubscriptionMatchedStatus.h" />
+    <ClInclude Include="include\Status\Type\InstanceStateKind.h" />
+    <ClInclude Include="include\Status\Type\QosPolicyId_t.h" />
+    <ClInclude Include="include\Status\Type\SampleStateKind.h" />
+    <ClInclude Include="include\Status\Type\StatusKind.h" />
+    <ClInclude Include="include\Status\Type\ViewStateKind.h" />
+    <ClInclude Include="include\Status\WaitSet.h" />
+    <ClInclude Include="include\Utility\DoublyLinkedList.h" />
+    <ClInclude Include="include\Utility\EventProcessor\Event.h" />
+    <ClInclude Include="include\Utility\EventProcessor\EventProcessor.h" />
+    <ClInclude Include="include\Utility\Monitoring\Monitor.h" />
+    <ClInclude Include="include\Utility\Network\NetworkManager.h" />
+    <ClInclude Include="include\Utility\Network\SimpleLinkedList.h" />
+    <ClInclude Include="include\Utility\Network\Transceiver.h" />
+    <ClInclude Include="include\Utility\Network\TransceiverInfo.h" />
+    <ClInclude Include="include\Utility\Network\TransceiverManager.h" />
+    <ClInclude Include="include\Utility\Network\UDPsocket.h" />
+    <ClInclude Include="include\Utility\Node.h" />
+    <ClInclude Include="include\Utility\PlatformOrientedInterface.h" />
+    <ClInclude Include="include\Utility\SharedPtrList.h" />
+    <ClInclude Include="include\Utility\SharedPtrNode.h" />
+    <ClInclude Include="include\Utility\SystemDefinition.h" />
+    <ClInclude Include="include\Utility\SystemInformation.h" />
+    <ClInclude Include="include\Utility\Timer\DynamicTimer.h" />
+    <ClInclude Include="include\Utility\Timer\ListHeader.h" />
+    <ClInclude Include="include\Utility\Timer\TimerEffector.h" />
+    <ClInclude Include="include\Utility\Timer\TimeUnit.h" />
+    <ClInclude Include="MessageHandler.h" />
+    <ClInclude Include="SocketManager.h" />
+    <ClInclude Include="TNSNController.h" />
+    <ClInclude Include="TNSNheader.h" />
+    <ClInclude Include="TNSNServer.h" />
+    <ClInclude Include="TNSTable.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
