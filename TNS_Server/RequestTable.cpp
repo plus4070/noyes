@@ -28,15 +28,15 @@ PR_NODE RequestTable::getLastEntry() {
 
 	if (r_head == NULL) {
 		return NULL;
-	} else {//1개라도 있는 경우에
+	}
+	else {//1개라도 있는 경우에
 		currentNode = r_head;
 
-		if (numOfRequests == 1) {
+		if (numOfRequests == 1)
 			r_head = NULL;
-		} else {
-			while (currentNode->next->next != NULL) {
+		else {
+			while (currentNode->next->next != NULL)
 				currentNode = currentNode->next;
-			}
 			beforeNode = currentNode;
 			currentNode = currentNode->next;
 			beforeNode->next = NULL;
@@ -63,7 +63,8 @@ void	RequestTable::addEntry(IN_ADDR ip, PDD_NODE message) {
 
 	if (r_head == NULL) {
 		r_head = newNode;
-	} else {
+	}
+	else {
 		newNode->next = r_head;
 		r_head = newNode;
 	}
