@@ -1,10 +1,9 @@
 // 해더파일 선언
 #include <winsock2.h>
 #include "stdafx.h"
-#include "ParticipantDataDistributor.h"
-#include "TerminalTable.h"
-#include "RequestTable.h"
 #include "DBManager.h"
+#include <deque>
+#include <vector>
 
 using namespace std;
 
@@ -15,14 +14,17 @@ using namespace std;
 class TCPSocket
 {
 public:
-	RequestTable *				RTable;
-	TerminalTable *				participantList;
-	ParticipantDataDistributor*	distributor;
-	DBManager * DB;
+	DBManager *						DB;
+	deque<pair<IN_ADDR, PDD_NODE>>	recvData;
+	CRITICAL_SECTION				cs;
 
 private:
+	
 	// 변수 선언	
+	
 	WSADATA wsaData;
+	int sockTotal;
+	/*
 	SOCKET hServSock;
 	SOCKADDR_IN servAddr;
 
@@ -35,21 +37,15 @@ private:
 	WSANETWORKEVENTS netEvents;
 
 	int clntLen;
-	int sockTotal;
 	int index, i;
 	char message[BUFSIZE];
 	int strLen;
+	*/
 
+
+	void ResetTCPSocket();
+	void inputDummyDataToDB();
 public:
 	TCPSocket();
 	int StartServer();
-
-	void ResetTCPSocket();
-	void Response();
-	void SaveRequests(IN_ADDR ip, PDD_NODE receiveData);
-	void participantDataDistribute();
-	void inputDummyData();
-	void inputDummyDataToDB();
-
-	void initalize();
 };

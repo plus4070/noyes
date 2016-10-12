@@ -1,10 +1,14 @@
 #include "TCPSocket.h"
+#include "TNSController.h"
 
 int main() {
 	// 서버 인스턴트
-	TCPSocket server;
+	TNSController server;
 
 	// 서버시작
-	server.StartServer();
+	server.startTNSServer();
+
+	//TCPSocket server;
+	//server.StartServer();
 	return 0;
 }
