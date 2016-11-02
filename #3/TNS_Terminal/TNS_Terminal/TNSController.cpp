@@ -15,7 +15,7 @@ TNSController::~TNSController()
 	DeleteCriticalSection(&cs);
 }
 
-void 							TNSController::initalizeSetting() {
+void TNSController::initalizeSetting() {
 	this->socketManager = new SocketManager();
 	this->databaseManager = new DBManager();
 	this->messageHandler = new MessageHandler();
@@ -28,23 +28,23 @@ void 							TNSController::initalizeSetting() {
 	this->socketManager->setCriticalSection(&cs);
 }
 
-void							TNSController::startTNSServer() {
+void TNSController::startTNSServer() {
 	this->socketManager->getRecevingDEQUE(&(this->recvData));
 	this->socketManager->startRecevingThread();
 	this->distibuteTNSData();
 }
 
-void							TNSController::closeTNSServer() {
+void TNSController::closeTNSServer() {
 	this->socketManager->closeRecevingThread();
 }
 
-void							TNSController::distibuteTNSData() {
-	list<PDD_DATA>				distributeList;
-	list<PDD_DATA>::iterator	it;
-	int							NumOfParticipant;
+void TNSController::distibuteTNSData() {
+	list<PDD_DATA> distributeList;
+	list<PDD_DATA>::iterator it;
+	int NumOfParticipant;
 
-	PPDD_NODE PDatagram = (PPDD_NODE)malloc(sizeof(_PDD_NODE));			//±âÁ¸¿¡ ÀÖ´Â ³ëµåµé¿¡°Ô »õ·Î¿î Âü¿©ÀÚÀÇ Á¤º¸¸¦ ÀüÆÄÇÏ±â À§ÇØ ¾²´Â µ¥ÀÌÅÍ±×·¥, Front-End¿¡¼­ Àü´Þ¹ÞÀº ÆÐÅ¶ ±×´ë·Î ½áµµ µÉµí
-	PPDD_NODE ReturnDatagram = (PPDD_NODE)malloc(sizeof(_PDD_NODE));	//»õ·Î Ãß°¡µÈ ³ëµå¿¡°Ô ±âÁ¸ Âü¿©ÀÚµéÀÇ Á¤º¸¸¦ ÀüÆÄÇÏ±â À§ÇØ ¾²´Â µ¥ÀÌÅÍ±×·¥, ¿©·¯°³ÀÇ ¿£Æ®¸®¸¦ °¡Áü
+	PPDD_NODE PDatagram = (PPDD_NODE)malloc(sizeof(_PDD_NODE));		//ê¸°ì¡´ì— ìžˆëŠ” ë…¸ë“œë“¤ì—ê²Œ ìƒˆë¡œìš´ ì°¸ì—¬ìžì˜ ì •ë³´ë¥¼ ì „íŒŒí•˜ê¸° ìœ„í•´ ì“°ëŠ” ë°ì´í„°ê·¸ëž¨, Front-Endì—ì„œ ì „ë‹¬ë°›ì€ íŒ¨í‚· ê·¸ëŒ€ë¡œ ì¨ë„ ë ë“¯
+	PPDD_NODE ReturnDatagram = (PPDD_NODE)malloc(sizeof(_PDD_NODE));	//ìƒˆë¡œ ì¶”ê°€ëœ ë…¸ë“œì—ê²Œ ê¸°ì¡´ ì°¸ì—¬ìžë“¤ì˜ ì •ë³´ë¥¼ ì „íŒŒí•˜ê¸° ìœ„í•´ ì“°ëŠ” ë°ì´í„°ê·¸ëž¨, ì—¬ëŸ¬ê°œì˜ ì—”íŠ¸ë¦¬ë¥¼ ê°€ì§
 
 	while (true) {
 		messageHandler->setPDDNode(PDatagram);
@@ -60,7 +60,7 @@ void							TNSController::distibuteTNSData() {
 					printf("This Topic isn't Exist\n");
 					messageHandler->setMessageTypeTopicNotExist(&entry);
 				}
-				else {// DB¿¡ ÀúÀå ¹× copy protocol
+				else {// DBì— ì €ìž¥ ë° copy protocol
 					messageHandler->setMessageType(ReturnDatagram, entry.PDD_HEADER.MESSAGE_TYPE);
 					messageHandler->copyDatagram(&entry, PDatagram);
 					
@@ -74,11 +74,11 @@ void							TNSController::distibuteTNSData() {
 				puts("ERROR MSG TYPE");
 			}
 
-			//Front-end¿¡°Ô º¸³»´Â SAVEDONE
+			//Front-endì—ê²Œ ë³´ë‚´ëŠ” SAVEDONE
 			socketManager->sendPacket(inet_ntoa(recvData->back().first), (char *)&entry, sizeof(_PDD_NODE), FES_PORT);
 			Sleep(100);
 
-			//±âÁ¸ ³ëµåµé¿¡°Ô »õ·Î ³ëµå Ãß°¡µÊÀ» ¾Ë¸²
+			//ê¸°ì¡´ ë…¸ë“œë“¤ì—ê²Œ ìƒˆë¡œ ë…¸ë“œ ì¶”ê°€ë¨ì„ ì•Œë¦¼
 			for (it = distributeList.begin(); it != distributeList.end(); ++it) {
 				Sleep(100);
 				messageHandler->addDataToNode(ReturnDatagram, *it);
@@ -95,7 +95,7 @@ void							TNSController::distibuteTNSData() {
 
 			Sleep(200);
 
-			//»õ·Î Ãß°¡µÈ ³ëµå¿¡°Ô ±âÁ¸¿¡ ÀÖ´Â ³ëµåµéÀÇ Á¤º¸¸¦ ¾Ë¸²
+			//ìƒˆë¡œ ì¶”ê°€ëœ ë…¸ë“œì—ê²Œ ê¸°ì¡´ì— ìžˆëŠ” ë…¸ë“œë“¤ì˜ ì •ë³´ë¥¼ ì•Œë¦¼
 			//socketManager->sendPacket(entry.PDD_DATA[0].PARTICIPANT_IP, (const char *)ReturnDatagram, sizeof(_PDD_NODE), DDS_PORT);
 
 			EnterCriticalSection(&cs);
@@ -105,11 +105,11 @@ void							TNSController::distibuteTNSData() {
 	}
 }
 
-bool							TNSController::isReceviedDataExist() {
+bool TNSController::isReceviedDataExist() {
 	return this->recvData->size() == 0 ? false : true;
 }
 
-void							TNSController::inputDummyDataToDB() {
+void TNSController::inputDummyDataToDB() {
 	PDD_DATA dummy, dummy2, dummy3;
 	memcpy(dummy.PARTICIPANT_DOMAIN_ID, "DDS_1", sizeof("DDS_1"));
 	memcpy(dummy.PARTICIPANT_DATA, "TEST_DDS_DATA", sizeof("TEST_DDS_DATA"));
