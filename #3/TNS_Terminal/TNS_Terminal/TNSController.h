@@ -14,22 +14,22 @@ public:
 	TNSController();
 	~TNSController();
 
-	void			startTNSServer();
-	void			closeTNSServer();
+	void startTNSServer();
+	void closeTNSServer();
 
 private:
-	SocketManager					* socketManager;
-	DBManager						* databaseManager;
+	SocketManager * socketManager;
+	DBManager * databaseManager;
 
-	MessageHandler					* messageHandler;
+	MessageHandler * messageHandler;
 
-	CRITICAL_SECTION				cs;
-	deque<pair<IN_ADDR, PDD_NODE>>	* recvData;
+	CRITICAL_SECTION cs;
+	deque<pair<IN_ADDR, PDD_NODE>> * recvData;
 
-	void 			initalizeSetting();
-	void			distibuteTNSData();
-	bool			isReceviedDataExist();
+	void initalizeSetting();
+	void distibuteTNSData();
+	bool isReceviedDataExist();
 
-	void			inputDummyDataToDB();
+	void inputDummyDataToDB();
 };
 
