@@ -91,7 +91,7 @@ void DBManager::removeParticipantTable(char * topic) {
 
 
 void DBManager::initDBInfo() {
-	int	test_type;
+	int test_type;
 
 	printf("***** Select inital type *****\n");
 	printf("[1] Private Database\n");
@@ -107,8 +107,7 @@ void DBManager::initDBInfo() {
 		this->user = (char*)"terminal";
 		this->pw = (char*)"tns2458";
 		this->db = (char*)"ddsparticipanttable";
-	}
-	else {
+	} else {
 		char host[ADDRESS_SIZE];
 		char user[MAX_CHAR];
 		char pw[MAX_CHAR];
@@ -191,7 +190,7 @@ bool DBManager::DBConnection() {
 
 	if (mysql_real_connect(connection, host, user, pw, db, 3306, NULL, 0) == NULL)
 	{
-		printf("¿¡·¯ : %d, %s\n", mysql_errno(connection), mysql_error(connection));
+		printf("ì—ëŸ¬ : %d, %s\n", mysql_errno(connection), mysql_error(connection));
 		return false;
 	}
 	return true;
@@ -204,15 +203,12 @@ bool DBManager::isEntryExist(PDD_DATA entry) {
 	//printf("IS ENTRY EXIST :: %s\n", query);
 	state = mysql_query(this->connection, query);
 
-	if (state != 0)
-	{
-		printf("ERROR NUMBER\t= %u\n", mysql_errno(this->connection)); // mysql errno Ãâ·Â
-		printf("ERROR MESSAGE\t= %s\n", mysql_error(this->connection)); //mysql error ¸Þ¼¼Áö Ãâ·Â
-	}
-	else {
+	if (state != 0)	{
+		printf("ERROR NUMBER\t= %u\n", mysql_errno(this->connection)); // mysql errno ì¶œë ¥
+		printf("ERROR MESSAGE\t= %s\n", mysql_error(this->connection)); //mysql error ë©”ì„¸ì§€ ì¶œë ¥
+	} else {
 		sql_result = mysql_store_result(this->connection);
-		if ((sql_row = mysql_fetch_row(sql_result)) != NULL)
-		{
+		if ((sql_row = mysql_fetch_row(sql_result)) != NULL) {
 			return true;
 		}
 	}
@@ -220,8 +216,8 @@ bool DBManager::isEntryExist(PDD_DATA entry) {
 }
 
 list<PDD_DATA> DBManager::InsertEntry(PDD_DATA entry) {
-	int		state;
-	char    query[200];
+	int state;
+	char query[200];
 
 	sprintf(query, "INSERT INTO	`participanttable_%s` VALUES ('%s', '%s', %d, '%s', %d, '%s');", entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_TOPICTYPE, entry.PARTICIPANT_NODE_TYPE, entry.PARTICIPANT_IP, entry.PARTICIPANT_PORT, entry.PARTICIPANT_DATA);
 	printf("INSERT ENTRY :: %s\n", query);
@@ -232,7 +228,7 @@ list<PDD_DATA> DBManager::InsertEntry(PDD_DATA entry) {
 }
 
 list<PDD_DATA> DBManager::deleteEntry(PDD_DATA entry) {
-	char    query[200];
+	char query[200];
 	sprintf(query, "DELETE FROM participanttable_%s WHERE Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_NODE_TYPE, entry.PARTICIPANT_IP, entry.PARTICIPANT_PORT);
 
 	//printf("DELETE ENTRY :: %s\n", query);
@@ -243,7 +239,7 @@ list<PDD_DATA> DBManager::deleteEntry(PDD_DATA entry) {
 }
 
 list<PDD_DATA> DBManager::updateEntry(PDD_DATA entry) {
-	char    query[200];
+	char query[200];
 	sprintf(query, "UPDATE participanttable_%s set Data = '%s' WHERE Domain = '%s' AND Type = %d AND IP='%s' AND Port=%d;", entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DATA,  entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_NODE_TYPE, entry.PARTICIPANT_IP, entry.PARTICIPANT_PORT);
 
 	//printf("UPDATE ENTRY :: %s\n", query);
@@ -254,32 +250,29 @@ list<PDD_DATA> DBManager::updateEntry(PDD_DATA entry) {
 }
 
 void DBManager::showAllEntry() {
-	char    query[200];
+	char query[200];
 	sprintf(query, "SELECT * FROM %s;", this->table);
 	printf("SHOW ALL ENTRY :: %s\n", query);
 	state = mysql_query(this->connection, query);
 
-	if (state != 0)
-	{
-		printf("ERROR NUMBER\t= %u\n", mysql_errno(this->connection)); // mysql errno Ãâ·Â
-		printf("ERROR MESSAGE\t= %s\n", mysql_error(this->connection)); //mysql error ¸Þ¼¼Áö Ãâ·Â
-	}
-	else {
+	if (state != 0)	{
+		printf("ERROR NUMBER\t= %u\n", mysql_errno(this->connection)); // mysql errno ì¶œë ¥
+		printf("ERROR MESSAGE\t= %s\n", mysql_error(this->connection)); //mysql error ë©”ì„¸ì§€ ì¶œë ¥
+	} else {
 		sql_result = mysql_store_result(this->connection);
-		while ((sql_row = mysql_fetch_row(sql_result)) != NULL)
-		{
+		while ((sql_row = mysql_fetch_row(sql_result)) != NULL)	{
 			printf("%s\t%s\t%d\t%s\t%d\t%s\n", sql_row[0], sql_row[1], atoi(sql_row[2]), sql_row[3], atoi(sql_row[4]), sql_row[5]);
 		}
 	}
 }
 
- bool Compare(const PDD_DATA &firstElem, const PDD_DATA &secondElem) {
+bool Compare(const PDD_DATA &firstElem, const PDD_DATA &secondElem) {
 	return firstElem.PARTICIPANT_IP < secondElem.PARTICIPANT_IP;
 }
 
 
 list<PDD_DATA> DBManager::selectRelationEntry(PDD_DATA entry, int state) {
-	char    query[200];
+	char query[200];
 	list<PDD_DATA> sendList;
 	IN_ADDR addr;
 	PDD_DATA data;
@@ -293,8 +286,7 @@ list<PDD_DATA> DBManager::selectRelationEntry(PDD_DATA entry, int state) {
 
 		if (state != -1) {
 			printf("GET DB DATA \n");
-			while ((sql_row = mysql_fetch_row(sql_result)) != NULL)
-			{
+			while ((sql_row = mysql_fetch_row(sql_result)) != NULL)	{
 				//printf("%s, %s, %d, %s, %d, %s\n", sql_row[0], sql_row[1], atoi(sql_row[2]), sql_row[3], atoi(sql_row[4]), sql_row[5]);
 				memset(&data, 0, sizeof(PDD_DATA));
 				strcpy(data.PARTICIPANT_TOPIC, entry.PARTICIPANT_TOPIC);
@@ -316,16 +308,14 @@ list<PDD_DATA> DBManager::selectRelationEntry(PDD_DATA entry, int state) {
 	return sendList;
 }
 
-int	DBManager::executeQuery(char * query) {
+int DBManager::executeQuery(char * query) {
 	int state = mysql_query(this->connection, (const char *)query);
 
-	if (state != 0)
-	{
-		printf("ERROR NUMBER\t= %u\n", mysql_errno(this->connection)); // mysql errno Ãâ·Â
-		printf("ERROR MESSAGE\t= %s\n", mysql_error(this->connection)); //mysql error ¸Þ¼¼Áö Ãâ·Â
+	if (state != 0)	{
+		printf("ERROR NUMBER\t= %u\n", mysql_errno(this->connection)); // mysql errno ì¶œë ¥
+		printf("ERROR MESSAGE\t= %s\n", mysql_error(this->connection)); //mysql error ë©”ì„¸ì§€ ì¶œë ¥
 		state = -1;
-	}
-	else {
+	} else {
 		this->sql_result =  mysql_store_result(this->connection);
 	}
 
@@ -333,8 +323,7 @@ int	DBManager::executeQuery(char * query) {
 }
 
 void DBManager::makeQuery(PDD_DATA entry, char * query, int queryType) {
-	switch (queryType)
-	{
+	switch (queryType) {
 	case QUERY_TYPE_INSERT:
 		sprintf(query, "INSERT INTO	`participanttable_%s` VALUES ('%s', %d, '%s', %d, '%s');", entry.PARTICIPANT_TOPIC, entry.PARTICIPANT_DOMAIN_ID, entry.PARTICIPANT_NODE_TYPE, entry.PARTICIPANT_IP, entry.PARTICIPANT_PORT, entry.PARTICIPANT_DATA);
 		break;
