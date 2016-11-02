@@ -38,19 +38,19 @@ public:
 	void makeQuery(PDD_DATA entry, char * query, int queryType);
 
 private:
-	MYSQL		*connection;      // the connection
-	MYSQL_RES	*sql_result;  // the results
-	MYSQL_ROW	sql_row;      // the results row (line by line)
+	MYSQL *connection;      // the connection
+	MYSQL_RES *sql_result;  // the results
+	MYSQL_ROW sql_row;      // the results row (line by line)
 
 							  // DB Connect Infomation
-	const char	*host = (char*)"127.0.0.1";
-	const char	*user = (char*)"terminal";
-	const char	*pw = (char*)"tns2458";
-	const char	*db = (char*)"ddsparticipanttable";
-	const char	*table = (char*)"topictable";
+	const char *host = (char*)"127.0.0.1";
+	const char *user = (char*)"terminal";
+	const char *pw = (char*)"tns2458";
+	const char *db = (char*)"ddsparticipanttable";
+	const char *table = (char*)"topictable";
 
-	char    *query;
-	int     state;
+	char *query;
+	int state;
 
 };
 
