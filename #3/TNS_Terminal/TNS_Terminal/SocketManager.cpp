@@ -14,29 +14,24 @@ SocketManager::~SocketManager()
 }
 
 
-void 							SocketManager::startRecevingThread() {
+void SocketManager::startRecevingThread() {
 	this->recvThread = (HANDLE)_beginthreadex(NULL, 0, receiving, (LPVOID)this, 0, NULL);
 }
 
-void 							SocketManager::closeRecevingThread() {
+void SocketManager::closeRecevingThread() {
 	CloseHandle(recvThread);
 }
 
-void			 				SocketManager::setCriticalSection(CRITICAL_SECTION * criticlaSection) {
+void SocketManager::setCriticalSection(CRITICAL_SECTION * criticlaSection) {
 	this->cs = *criticlaSection;
 }
 
-void  							SocketManager::getRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> ** dq) {
+void SocketManager::getRecevingDEQUE(deque<pair<IN_ADDR, PDD_NODE>> ** dq) {
 	*dq = &(this->recvData);
 }
 
-void							SocketManager::setUIView() {
-
-}
-
-void							SocketManager::sendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port) {
-	SOCKET				Socket;
-	//SOCKADDR_IN			tempAddr;
+void SocketManager::sendPacket(char * TargetAddress, const char * Datagram, int SizeOfDatagram, int port) {
+	SOCKET	Socket;
 
 	Socket = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -59,19 +54,19 @@ void							SocketManager::sendPacket(char * TargetAddress, const char * Datagram
 	closesocket(Socket);
 }
 
-SOCKET 							SocketManager::createSocket() {
-	// ¼ÒÄÏ »ı¼º (¼º°ø½Ã ÇÚµéÀ», ½ÇÆĞ½Ã "INVALID_SOCKET" ¹İÈ¯)
+SOCKET SocketManager::createSocket() {
+	// ì†Œì¼“ ìƒì„± (ì„±ê³µì‹œ í•¸ë“¤ì„, ì‹¤íŒ¨ì‹œ "INVALID_SOCKET" ë°˜í™˜)
 	SOCKET servSock = socket(PF_INET, SOCK_STREAM, 0);
 
-	// ¼ÒÄÏ »ı¼º ½ÇÆĞ Ã³¸®
+	// ì†Œì¼“ ìƒì„± ì‹¤íŒ¨ ì²˜ë¦¬
 	if (servSock == INVALID_SOCKET) {
 		puts("socket() error");
 	}
 
 	return servSock;
 }
-void							SocketManager::setSocketTargetAddress(SOCKET * s, char * TargetAddress, int port) {
-	SOCKADDR_IN			tempAddr;
+void SocketManager::setSocketTargetAddress(SOCKET * s, char * TargetAddress, int port) {
+	SOCKADDR_IN tempAddr;
 
 	memset(&tempAddr, 0, sizeof(tempAddr));
 	tempAddr.sin_family = AF_INET;
@@ -82,23 +77,23 @@ void							SocketManager::setSocketTargetAddress(SOCKET * s, char * TargetAddres
 		puts("connect() error!");
 }
 
-void							SocketManager::bindingSocket(SOCKET servSocket, int PORT) {
-	// ¼ÒÄÏ Åë½ÅÀ» À§ÇÑ ±âº» Á¤º¸
+void SocketManager::bindingSocket(SOCKET servSocket, int PORT) {
+	// ì†Œì¼“ í†µì‹ ì„ ìœ„í•œ ê¸°ë³¸ ì •ë³´
 	SOCKADDR_IN servAddr;
 
 	servAddr.sin_family = AF_INET;
 	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servAddr.sin_port = htons(PORT);
 
-	// ÁÖ¼Ò¿Í Port ÇÒ´ç (¹ÙÀÎµå!!)
+	// ì£¼ì†Œì™€ Port í• ë‹¹ (ë°”ì¸ë“œ!!)
 	if (bind(servSocket, (struct sockaddr *) &servAddr, sizeof(servAddr)) == SOCKET_ERROR) {
 		puts("bind() error");
 	}
 }
 
-void 							SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
+void SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
 	//static void LinkingEvents(SOCKET servSock, int* sockNum, SOCKET sockArray[WSA_MAXIMUM_WAIT_EVENTS], WSAEVENT eventArray[WSA_MAXIMUM_WAIT_EVENTS]) {
-	// ÀÌº¥Æ® ¹ß»ıÀ» È®ÀÎ (¼º°ø½Ã 0, ½ÇÆĞ½Ã "SOCKET_ERROR" ¹İÈ¯)
+	// ì´ë²¤íŠ¸ ë°œìƒì„ í™•ì¸ (ì„±ê³µì‹œ 0, ì‹¤íŒ¨ì‹œ "SOCKET_ERROR" ë°˜í™˜)
 	vector<SOCKET>::iterator sVec_it;
 	vector<WSAEVENT>::iterator eVec_it;
 
@@ -108,23 +103,23 @@ void 							SocketManager::linkingEvents(SOCKET servSock, int* sockNum, vector<S
 		puts("WSAEventSelect() error");
 	}
 
-	// ¿¬°á ´ë±â ¿äÃ» »óÅÂ·ÎÀÇ ÁøÀÔ (½ÅÈ£°¡ µé¾î¿Ã¶§±îÁö ´ë±â)
+	// ì—°ê²° ëŒ€ê¸° ìš”ì²­ ìƒíƒœë¡œì˜ ì§„ì… (ì‹ í˜¸ê°€ ë“¤ì–´ì˜¬ë•Œê¹Œì§€ ëŒ€ê¸°)
 	if (listen(servSock, 5) == SOCKET_ERROR) {
 		puts("listen() error");
 	}
 
 	sVec_it = sockArray->begin() + *sockNum;
-	// ¼­¹ö ¼ÒÄÏ ÇÚµé Á¤º¸
+	// ì„œë²„ ì†Œì¼“ í•¸ë“¤ ì •ë³´
 	sockArray->insert(sVec_it, servSock);
 
 	eVec_it = eventArray->begin() + *sockNum;
-	// ÀÌº¥Æ® ¿ÀºêÁ§Æ® ÇÚµé Á¤º¸
+	// ì´ë²¤íŠ¸ ì˜¤ë¸Œì íŠ¸ í•¸ë“¤ ì •ë³´
 	eventArray->insert(eVec_it, newEvent);
 
 	(*sockNum)++;
 }
 
-SOCKET							SocketManager::getRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
+SOCKET	SocketManager::getRecevingSocket(int port, int* sockNum, vector<SOCKET> * sockArray, vector<WSAEVENT> * eventArray) {
 	SOCKET s = this->createSocket();
 
 	this->bindingSocket(s, port);
@@ -133,20 +128,7 @@ SOCKET							SocketManager::getRecevingSocket(int port, int* sockNum, vector<SOC
 	return s;
 }
 
-//receving
-bool							SocketManager::isWsaWaitERROR() {
-	return false;
-}
-
-bool							SocketManager::acceptConnection() {
-	return false;
-}
-
-bool							SocketManager::closeConnection() {
-	return false;
-}
-
-void							SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) {
+void SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray, SOCKET s, WSAEVENT Event) {
 	vector<SOCKET>::iterator	sVec_it = SocketArray->begin() + *idx;
 	vector<WSAEVENT>::iterator	eVec_it = EventArray->begin()  + *idx;
 
@@ -156,7 +138,7 @@ void							SocketManager::insertSocketEvent(int * idx, vector<SOCKET> * SocketAr
 	(*idx)++;
 }
 
-void							SocketManager::deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
+void SocketManager::deleteSocketEvent(int * idx, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
 	vector<SOCKET>::iterator sVec_it;
 	vector<WSAEVENT>::iterator eVec_it;
 
@@ -171,19 +153,19 @@ void SocketManager::AcceptProc(int idx, int * totalSocket, vector<SOCKET> * Sock
 	SOCKADDR_IN clntAddr;
 	int clntLen = sizeof(clntAddr);
 
-	// ¿¬°áÀ» ¼ö¶ô (accept | ¼º°ø½Ã ¼ÒÄÏÇÚµé ½ÇÆĞ½Ã "INVALID_SOCKET" ¹İÈ¯)
+	// ì—°ê²°ì„ ìˆ˜ë½ (accept | ì„±ê³µì‹œ ì†Œì¼“í•¸ë“¤ ì‹¤íŒ¨ì‹œ "INVALID_SOCKET" ë°˜í™˜)
 	SOCKET hClntSock = accept(SocketArray->at(idx), (SOCKADDR*)&clntAddr, &clntLen);
 
-	// ÀÌº¥Æ® Ä¿³Î ¿ÀºêÁ§Æ® »ı¼º(WSACreateEvent)
+	// ì´ë²¤íŠ¸ ì»¤ë„ ì˜¤ë¸Œì íŠ¸ ìƒì„±(WSACreateEvent)
 	WSAEVENT newEvent = WSACreateEvent();
 
-	// ÀÌº¥Æ® ¹ß»ı À¯¹« È®ÀÎ(WSAEventSelect)
+	// ì´ë²¤íŠ¸ ë°œìƒ ìœ ë¬´ í™•ì¸(WSAEventSelect)
 	WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
 
 	insertSocketEvent(totalSocket, SocketArray, EventArray, hClntSock, newEvent);
 
 	//Test Print Code
-	//printf("»õ·Î ¿¬°áµÈ ¼ÒÄÏÀÇ ÇÚµé %d \n", hClntSock);
+	//printf("ìƒˆë¡œ ì—°ê²°ëœ ì†Œì¼“ì˜ í•¸ë“¤ %d \n", hClntSock);
 	//printf("vector size = %d\n", SocketArray->size());
 	//printf("array  size : %d\n", *totalSocket);
 }
@@ -202,47 +184,47 @@ PDD_NODE SocketManager::ReadProc(int idx, int * strLen, vector<SOCKET> * SocketA
 	return receiveData;
 }
 
-void	SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
+void SocketManager::CloseProc(int idx, int * totalSocket, vector<SOCKET> * SocketArray, vector<WSAEVENT> * EventArray) {
 
 	WSACloseEvent(EventArray->at(idx));
 
-	// ¼ÒÄÏ Á¾·ù
+	// ì†Œì¼“ ì¢…ë¥˜
 	closesocket(SocketArray->at(idx));
-	//printf("Á¾·á µÈ ¼ÒÄÏÀÇ ÇÚµé %d \n", SocketArray->at(idx));
+	//printf("ì¢…ë£Œ ëœ ì†Œì¼“ì˜ í•¸ë“¤ %d \n", SocketArray->at(idx));
 
 	(*totalSocket)--;
 
-	// ¹è¿­ Á¤¸®.
-	//printf("»èÁ¦ : %d\n", idx);
+	// ë°°ì—´ ì •ë¦¬.
+	//printf("ì‚­ì œ : %d\n", idx);
 
 	deleteSocketEvent(&idx, SocketArray, EventArray);
 }
 
-void SocketManager::savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>>	* dq, PDD_NODE * pn, sockaddr_in addr) {
+void SocketManager::savePacketToDeque(CRITICAL_SECTION * cs, deque<pair<IN_ADDR, PDD_NODE>> * dq, PDD_NODE * pn, sockaddr_in addr) {
 	EnterCriticalSection(cs);
 	dq->push_front(make_pair(addr.sin_addr, *pn));
 	LeaveCriticalSection(cs);
 }
 
-static							 UINT WINAPI receiving(LPVOID p) {
-	SocketManager		* manager = (SocketManager*)p;
+static UINT WINAPI receiving(LPVOID p) {
+	SocketManager * manager = (SocketManager*)p;
 
-	WSADATA				wsaData;
-	PDD_NODE			receiveData;
-	SOCKET				hServSock;
+	WSADATA	wsaData;
+	PDD_NODE receiveData;
+	SOCKET hServSock;
 
-	vector<SOCKET>		hSockArray;		//¼ÒÄÏ ÇÚµé¹è¿­ - ¿¬°á ¿äÃ»ÀÌ µé¾î¿Ã ¶§¸¶´Ù »ı¼ºµÇ´Â ¼ÒÄÏÀÇ ÇÚµéÀ» ÀÌ ¹è¿­¿¡ ÀúÀå. (ÃÖ´ë64)
-	vector<WSAEVENT>	hEventArray;	//EventArray
-	WSANETWORKEVENTS	netEvents;		//Event Flags
+	vector<SOCKET> hSockArray;	//ì†Œì¼“ í•¸ë“¤ë°°ì—´ - ì—°ê²° ìš”ì²­ì´ ë“¤ì–´ì˜¬ ë•Œë§ˆë‹¤ ìƒì„±ë˜ëŠ” ì†Œì¼“ì˜ í•¸ë“¤ì„ ì´ ë°°ì—´ì— ì €ì¥. (ìµœëŒ€64)
+	vector<WSAEVENT> hEventArray;	//EventArray
+	WSANETWORKEVENTS netEvents;	//Event Flags
 
-	struct sockaddr_in	name;
+	struct sockaddr_in name;
 
-	int					sockTotal = 0;
-	int					index, i, strLen;
-	int					len = sizeof(name);
+	int sockTotal = 0;
+	int index, i, strLen;
+	int len = sizeof(name);
 
 
-	// À©¼Ó ÃÊ±âÈ­ (¼º°ø½Ã 0, ½ÇÆĞ½Ã ¿¡·¯ ÄÚµå¸®ÅÏ)
+	// ìœˆì† ì´ˆê¸°í™” (ì„±ê³µì‹œ 0, ì‹¤íŒ¨ì‹œ ì—ëŸ¬ ì½”ë“œë¦¬í„´)
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
 		puts("WSAStartup() error!");
 	}
@@ -258,13 +240,13 @@ static							 UINT WINAPI receiving(LPVOID p) {
 
 	SOCKET * sockArray;
 	WSAEVENT * eventArray;
-	// ·çÇÁ
+	// ë£¨í”„
 	while (true)
 	{
 		sockArray = &hSockArray[0];
 		eventArray = &hEventArray[0];
 
-		// ÀÌº¥Æ® Á¾·ù ±¸ºĞÇÏ±â(WSAWaitForMultipleEvents)
+		// ì´ë²¤íŠ¸ ì¢…ë¥˜ êµ¬ë¶„í•˜ê¸°(WSAWaitForMultipleEvents)
 		index = WSAWaitForMultipleEvents(sockTotal, eventArray, FALSE, WSA_INFINITE, FALSE);
 		index = index - WSA_WAIT_EVENT_0;
 
@@ -278,7 +260,7 @@ static							 UINT WINAPI receiving(LPVOID p) {
 				index = i;
 				WSAEnumNetworkEvents(sockArray[index], eventArray[index], &netEvents);
 
-				// ÃÊ±â ¿¬°á ¿äÃ»ÀÇ °æ¿ì.
+				// ì´ˆê¸° ì—°ê²° ìš”ì²­ì˜ ê²½ìš°.
 				if (netEvents.lNetworkEvents & FD_ACCEPT)
 				{
 					if (netEvents.iErrorCode[FD_ACCEPT_BIT] != 0) {
@@ -329,7 +311,7 @@ static							 UINT WINAPI receiving(LPVOID p) {
 	return 0;
 }
 
-static							 UINT WINAPI receiving2(LPVOID p) {
+static UINT WINAPI receiving2(LPVOID p) {
 	SocketManager * manager = (SocketManager*)p;
 
 	PDD_NODE receiveData;
@@ -338,11 +320,11 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 	SOCKET hServSock;
 
 	//SOCKET hSockArray[WSA_MAXIMUM_WAIT_EVENTS];
-	vector<SOCKET> hSockArray; //¼ÒÄÏ ÇÚµé¹è¿­ - ¿¬°á ¿äÃ»ÀÌ µé¾î¿Ã ¶§¸¶´Ù »ı¼ºµÇ´Â ¼ÒÄÏÀÇ ÇÚµéÀ» ÀÌ ¹è¿­¿¡ ÀúÀå. (ÃÖ´ë64)
+	vector<SOCKET> hSockArray; //ì†Œì¼“ í•¸ë“¤ë°°ì—´ - ì—°ê²° ìš”ì²­ì´ ë“¤ì–´ì˜¬ ë•Œë§ˆë‹¤ ìƒì„±ë˜ëŠ” ì†Œì¼“ì˜ í•¸ë“¤ì„ ì´ ë°°ì—´ì— ì €ì¥. (ìµœëŒ€64)
 	SOCKET hClntSock;
 	SOCKADDR_IN clntAddr;
 
-	//WSAEVENT hEventArray[WSA_MAXIMUM_WAIT_EVENTS];	// ÀÌº¥Æ® ¹è¿­
+	//WSAEVENT hEventArray[WSA_MAXIMUM_WAIT_EVENTS];	// ì´ë²¤íŠ¸ ë°°ì—´
 	vector<WSAEVENT> hEventArray;
 	WSAEVENT newEvent;
 	WSANETWORKEVENTS netEvents;
@@ -372,13 +354,13 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 	vector<SOCKET>::iterator sVec_it;
 	vector<WSAEVENT>::iterator eVec_it;
 
-	// ·çÇÁ
+	// ë£¨í”„
 	while (true)
 	{
 		sockArray = &hSockArray[0];
 		eventArray = &hEventArray[0];
 
-		// ÀÌº¥Æ® Á¾·ù ±¸ºĞÇÏ±â(WSAWaitForMultipleEvents)
+		// ì´ë²¤íŠ¸ ì¢…ë¥˜ êµ¬ë¶„í•˜ê¸°(WSAWaitForMultipleEvents)
 		index = WSAWaitForMultipleEvents(sockTotal, eventArray, FALSE, WSA_INFINITE, FALSE);
 		index = index - WSA_WAIT_EVENT_0;
 
@@ -392,7 +374,7 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 				index = i;
 				WSAEnumNetworkEvents(sockArray[index], eventArray[index], &netEvents);
 
-				// ÃÊ±â ¿¬°á ¿äÃ»ÀÇ °æ¿ì.
+				// ì´ˆê¸° ì—°ê²° ìš”ì²­ì˜ ê²½ìš°.
 				if (netEvents.lNetworkEvents & FD_ACCEPT)
 				{
 					if (netEvents.iErrorCode[FD_ACCEPT_BIT] != 0)
@@ -403,13 +385,13 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 
 					clntLen = sizeof(clntAddr);
 
-					// ¿¬°áÀ» ¼ö¶ô (accept | ¼º°ø½Ã ¼ÒÄÏÇÚµé ½ÇÆĞ½Ã "INVALID_SOCKET" ¹İÈ¯)
+					// ì—°ê²°ì„ ìˆ˜ë½ (accept | ì„±ê³µì‹œ ì†Œì¼“í•¸ë“¤ ì‹¤íŒ¨ì‹œ "INVALID_SOCKET" ë°˜í™˜)
 					hClntSock = accept(hSockArray.at(index), (SOCKADDR*)&clntAddr, &clntLen);
 
-					// ÀÌº¥Æ® Ä¿³Î ¿ÀºêÁ§Æ® »ı¼º(WSACreateEvent)
+					// ì´ë²¤íŠ¸ ì»¤ë„ ì˜¤ë¸Œì íŠ¸ ìƒì„±(WSACreateEvent)
 					newEvent = WSACreateEvent();
 
-					// ÀÌº¥Æ® ¹ß»ı À¯¹« È®ÀÎ(WSAEventSelect)
+					// ì´ë²¤íŠ¸ ë°œìƒ ìœ ë¬´ í™•ì¸(WSAEventSelect)
 					WSAEventSelect(hClntSock, newEvent, FD_READ | FD_CLOSE);
 
 
@@ -422,14 +404,14 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 					//sockArray[sockTotal] = hClntSock;
 					sockTotal++;
 
-					printf("»õ·Î ¿¬°áµÈ ¼ÒÄÏÀÇ ÇÚµé %d \n", hClntSock);
+					printf("ìƒˆë¡œ ì—°ê²°ëœ ì†Œì¼“ì˜ í•¸ë“¤ %d \n", hClntSock);
 					printf("vector size = %d\n", hSockArray.size());
 					printf("array  size : %d\n", sockTotal);
 					
 				}
 
 
-				// µ¥ÀÌÅÍ Àü¼ÛÇØ¿Ã °æ¿ì.
+				// ë°ì´í„° ì „ì†¡í•´ì˜¬ ê²½ìš°.
 				if (netEvents.lNetworkEvents & FD_READ)
 				{
 					if (netEvents.iErrorCode[FD_READ_BIT] != 0)
@@ -442,9 +424,9 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 					//////////////////////////////////////////////////////////////////////////////////////////////////
 					//////////////////////////////////////////////////////////////////////////////////////////////////
 					//
-					//		¼­¹ö ÀÛ¾÷Àº ¿©±â¼­ ´ÙÇÏ°ÚÁö..
+					//		ì„œë²„ ì‘ì—…ì€ ì—¬ê¸°ì„œ ë‹¤í•˜ê² ì§€..
 					//
-					// µ¥ÀÌÅÍ¸¦ ¹ŞÀ½ (message¿¡ ¹ŞÀº µ¥ÀÌÅÍ¸¦ ´ãÀ½)
+					// ë°ì´í„°ë¥¼ ë°›ìŒ (messageì— ë°›ì€ ë°ì´í„°ë¥¼ ë‹´ìŒ)
 					strLen = recv(sockArray[index - WSA_WAIT_EVENT_0], (char*)&receiveData, sizeof(receiveData), 0);
 
 					if (getpeername(sockArray[index - WSA_WAIT_EVENT_0], (struct sockaddr *)&name, &len) != 0) {
@@ -455,7 +437,7 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 					//cout << sizeof(inet_ntoa(name.sin_addr)) << endl;					
 
 					if (strLen != -1) {
-						//RequestTable¿¡ ÀÏ´Ü ÀúÀå
+						//RequestTableì— ì¼ë‹¨ ì €ì¥
 						//EnterCriticalSection(&(manager->cs));
 						//tcpSocket->recvData.push_front(make_pair(name.sin_addr, receiveData));
 						//LeaveCriticalSection(&(tcpSocket->cs));
@@ -469,7 +451,7 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 				}
 
 
-				// ¿¬°á Á¾·á ¿äÃ»ÀÇ °æ¿ì.
+				// ì—°ê²° ì¢…ë£Œ ìš”ì²­ì˜ ê²½ìš°.
 				if (netEvents.lNetworkEvents & FD_CLOSE)
 				{
 					if (netEvents.iErrorCode[FD_CLOSE_BIT] != 0)
@@ -480,14 +462,14 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 
 					WSACloseEvent(eventArray[index]);
 
-					// ¼ÒÄÏ Á¾·ù
+					// ì†Œì¼“ ì¢…ë¥˜
 					closesocket(sockArray[index]);
-					printf("Á¾·á µÈ ¼ÒÄÏÀÇ ÇÚµé %d \n", sockArray[index]);
+					printf("ì¢…ë£Œ ëœ ì†Œì¼“ì˜ í•¸ë“¤ %d \n", sockArray[index]);
 
 					sockTotal--;
 
-					// ¹è¿­ Á¤¸®.
-					printf("»èÁ¦ : %d\n", index);
+					// ë°°ì—´ ì •ë¦¬.
+					printf("ì‚­ì œ : %d\n", index);
 					sVec_it = hSockArray.begin() + index;
 					hSockArray.erase(sVec_it);
 
@@ -502,7 +484,7 @@ static							 UINT WINAPI receiving2(LPVOID p) {
 		}//for
 	}//while
 
-	 // ÇÒ´ç ¹ŞÀº ¸®¼Ò½º ¹İÈ¯.
+	 // í• ë‹¹ ë°›ì€ ë¦¬ì†ŒìŠ¤ ë°˜í™˜.
 	WSACleanup();
 
 	return 0;
