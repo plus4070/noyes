@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="소스 파일\DDS">
+      <UniqueIdentifier>{afcb22aa-9434-4198-979c-4bfe9d1b581f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\DDS">
+      <UniqueIdentifier>{3fe46c22-bc38-4c46-87ad-d9bd823f540f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Manager">
+      <UniqueIdentifier>{19b492de-28ce-4114-9cf0-c217d3a47ad1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Manager">
+      <UniqueIdentifier>{a6a44003-a0ab-4cac-b172-f8a472b623e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\ThroughputTest">
+      <UniqueIdentifier>{1f28fab5-d526-486b-8962-c752d9bb8f2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\ThroughputTest">
+      <UniqueIdentifier>{ec5f018e-16e5-481d-9d3c-ac0823f5b2e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Table">
+      <UniqueIdentifier>{95618720-a837-44a8-b8b6-2901f2a0c7e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Table">
+      <UniqueIdentifier>{6bff79b7-a534-4a58-8485-aa2dbc0e7377}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TNSNController.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TNSNServer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSMonitoring.h">
+      <Filter>헤더 파일\DDS</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketManager.h">
+      <Filter>헤더 파일\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadManager.h">
+      <Filter>헤더 파일\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="ThroughputListener.h">
+      <Filter>헤더 파일\ThroughputTest</Filter>
+    </ClInclude>
+    <ClInclude Include="ThroughputTest.h">
+      <Filter>헤더 파일\ThroughputTest</Filter>
+    </ClInclude>
+    <ClInclude Include="TNSTable.h">
+      <Filter>헤더 파일\Table</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TNS_FrontEnd.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TNSNController.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TNSNServer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSMonitoring.cpp">
+      <Filter>소스 파일\DDS</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketManager.cpp">
+      <Filter>소스 파일\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadManager.cpp">
+      <Filter>소스 파일\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ThroughputListener.cpp">
+      <Filter>소스 파일\ThroughputTest</Filter>
+    </ClCompile>
+    <ClCompile Include="ThroughputTest.cpp">
+      <Filter>소스 파일\ThroughputTest</Filter>
+    </ClCompile>
+    <ClCompile Include="TNSTable.cpp">
+      <Filter>소스 파일\Table</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
